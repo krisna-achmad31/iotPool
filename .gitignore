@@ -10,3 +10,6 @@ service-account*.json
 app/android/app/google-services.json
 app/lib/firebase_options.dart
 app/ios/Runner/GoogleService-Info.plist
+
+# Hasil build landing (node tools/build-landing.mjs)
+landing/index.html

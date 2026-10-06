@@ -217,3 +217,25 @@ describe('hub & telemetri', () => {
     await assertSucceeds(b.commit());
   });
 });
+
+describe('waitlist', () => {
+  const entry = { name: 'Darto', contact: 'darto@example.com', segment: 'pond', sites: 3, city: 'Boyolali', lang: 'en', source: 'landing' };
+  const anon = () => env.unauthenticatedContext().firestore() as unknown as Firestore;
+  it('pengunjung tanpa login bisa mendaftar', async () => {
+    await assertSucceeds(setDoc(doc(anon(), 'waitlist/w1'), entry));
+    await assertSucceeds(setDoc(doc(anon(), 'waitlist/w2'), { name: 'Sari', contact: '+62 812 0000 1111', segment: 'farm' }));
+  });
+  it('tidak bisa membaca, mengubah, atau menghapus daftar', async () => {
+    await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), 'waitlist/w1'), entry));
+    await assertFails(getDoc(doc(anon(), 'waitlist/w1')));
+    await assertFails(getDocs(collection(as('darto'), 'waitlist')));
+    await assertFails(setDoc(doc(anon(), 'waitlist/w1'), { ...entry, name: 'Ganti' }));
+  });
+  it('menolak field asing, segmen tidak dikenal, dan isi kebesaran', async () => {
+    await assertFails(setDoc(doc(anon(), 'waitlist/w3'), { ...entry, plan: 'pro' }));
+    await assertFails(setDoc(doc(anon(), 'waitlist/w4'), { ...entry, segment: 'crypto' }));
+    await assertFails(setDoc(doc(anon(), 'waitlist/w5'), { ...entry, name: 'x'.repeat(81) }));
+    await assertFails(setDoc(doc(anon(), 'waitlist/w6'), { ...entry, sites: 0 }));
+    await assertFails(setDoc(doc(anon(), 'waitlist/w7'), { name: 'A', segment: 'pond' }));
+  });
+});

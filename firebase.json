@@ -6,6 +6,14 @@
   "database": {
     "rules": "database.rules.json"
   },
+  "hosting": {
+    "public": "landing",
+    "predeploy": ["node tools/build-landing.mjs"],
+    "ignore": ["firebase.json", "**/.*", "page.html"],
+    "headers": [
+      { "source": "img/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] }
+    ]
+  },
   "functions": [
     {
       "source": "functions",

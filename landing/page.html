@@ -1,11 +1,11 @@
 <title>Sysnergi</title>
-<meta name="description" content="Sysnergi memantau kualitas air kolam, lahan, kandang, dan rumah Anda, lalu menyalakan alat secara otomatis saat angka mulai bahaya.">
+<meta name="description" content="Sysnergi watches water quality in your pond, field, barn and home, and switches equipment on by itself when a reading turns dangerous.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
 <style>
-/* Layout: aplikasi sebagai panggung. Hero = ponsel hidup yang bisa diganti usahanya,
-   lalu cerita satu malam di kolam (grafik oksigen), hub fisik, rumah (v4), harga. */
+/* Layout: the app as the stage. Hero = a live phone you can switch per operation,
+   then one night at the pond (oxygen chart), the physical hub, Home (v4), pricing, waitlist. */
 :root{
   --bg:#EEF2F7;          /* p-bg */
   --bg-glow:#DCE8FB;
@@ -56,6 +56,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
+section[id]{scroll-margin-top:96px}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
 body{
   margin:0;background:var(--bg);color:var(--ink);
@@ -320,6 +321,40 @@ details p{color:var(--ink-2);padding-bottom:18px;max-width:62ch}
 .final .orb{width:96px;height:96px;box-shadow:0 30px 60px -18px rgba(28,111,232,.7)}
 footer{border-top:1px solid var(--line);padding-block:28px;color:var(--ink-2);font-size:.88rem}
 footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+/* waitlist */
+.wl{display:grid;grid-template-columns:.85fr 1.15fr;gap:40px;align-items:start}
+.wl-copy{display:flex;flex-direction:column;gap:18px;min-width:0}
+.wl-perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.wl-perks li{display:flex;gap:12px;align-items:flex-start;color:var(--ink-2)}
+.wl-perks li b{color:var(--ink);font-family:var(--f-display);font-weight:600}
+.wl-perks svg{flex:none;margin-top:4px;color:var(--good)}
+.wl-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);padding:28px;box-shadow:var(--shadow);min-width:0}
+.wl-form{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label,.field legend{font:600 .9rem/1.2 var(--f-display);color:var(--ink);padding:0}
+.field .hint{font-size:.8rem;color:var(--ink-2);font-weight:400;font-family:var(--f-body)}
+.field input,.field select{font:500 1rem/1.3 var(--f-body);color:var(--ink);background:var(--surface-2);border:1.5px solid var(--line);
+  border-radius:14px;padding:13px 14px;width:100%;transition:border-color .15s,background .15s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue);background:var(--surface)}
+.field input[aria-invalid="true"]{border-color:var(--danger)}
+.field .err{font-size:.82rem;color:var(--danger);min-height:0}
+fieldset.field{border:0;margin:0;padding:0}
+.segs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.segs label{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border:1.5px solid var(--line);
+  border-radius:16px;background:var(--surface-2);cursor:pointer;font:500 .88rem/1.2 var(--f-display);color:var(--ink-2);text-align:center;transition:border-color .15s,color .15s,background .15s}
+.segs input{position:absolute;opacity:0;pointer-events:none}
+.segs label:has(input:checked){border-color:var(--blue);color:var(--blue);background:var(--tint)}
+.segs label:has(input:focus-visible){outline:3px solid var(--blue-2);outline-offset:2px}
+.wl-form .btn{grid-column:1/-1;justify-content:center;width:100%}
+.wl-form .btn[disabled]{opacity:.6;cursor:progress;transform:none}
+.wl-fine{grid-column:1/-1;font-size:.8rem;color:var(--ink-2);text-align:center}
+.wl-status{grid-column:1/-1;font-size:.9rem;border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--ink)}
+.wl-done{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-block:28px}
+.wl-done .orb{width:72px;height:72px}
+.wl-done p{color:var(--ink-2);max-width:42ch}
+@media (max-width:980px){.wl{grid-template-columns:1fr}}
+@media (max-width:560px){.wl-form{grid-template-columns:1fr}.segs{grid-template-columns:repeat(2,1fr)}.wl-card{padding:20px}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -339,16 +374,16 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <header class="nav">
   <div class="wrap">
-    <nav class="nav-in" aria-label="Utama">
+    <nav class="nav-in" aria-label="Main">
       <a class="brand" href="#top"><span class="orb" aria-hidden="true"></span>Sysnergi</a>
       <div class="nav-links">
-        <a href="#cara-kerja">Cara kerja</a>
-        <a href="#fitur">Fitur</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#features">Features</a>
         <a href="#hub">Hub</a>
-        <a href="#rumah">Rumah</a>
-        <a href="#harga">Harga</a>
+        <a href="#home">Home</a>
+        <a href="#pricing">Pricing</a>
       </div>
-      <a class="btn btn-primary" href="#harga">Coba gratis</a>
+      <a class="btn btn-primary" href="#waitlist">Join the waitlist</a>
     </nav>
   </div>
 </header>
@@ -357,149 +392,149 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <span class="eyebrow">Pemantauan &amp; otomasi untuk usaha di lapangan</span>
-        <h1>Oksigen turun jam 3 pagi. <em>Aerator sudah menyala</em> sebelum Anda bangun.</h1>
-        <p class="lead">Sysnergi Hub membaca sensor di kolam, lahan, atau kandang setiap saat, lalu menyalakan alat sendiri saat angka mulai bahaya. Anda cukup melihat hasilnya di ponsel.</p>
+        <span class="eyebrow">Monitoring &amp; automation for farms, ponds and homes</span>
+        <h1>Oxygen drops at 3 a.m. <em>The aerator is already on</em> before you wake up.</h1>
+        <p class="lead">Sysnergi Hub reads the sensors in your pond, field or barn around the clock and switches equipment on by itself when a reading turns dangerous. You just check the result on your phone.</p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="#harga">Coba Pro gratis 14 hari</a>
-          <a class="btn btn-ghost" href="#hub">Lihat hub-nya</a>
+          <a class="btn btn-primary" href="#waitlist">Get early access</a>
+          <a class="btn btn-ghost" href="#hub">See the hub</a>
         </div>
         <div>
-          <p class="seg-label" id="seg-label">Lihat beranda untuk usaha Anda</p>
+          <p class="seg-label" id="seg-label">Preview the home screen for your operation</p>
           <div class="seg" role="tablist" aria-labelledby="seg-label" id="seg">
-            <button role="tab" id="tab-kolam" aria-selected="true" data-k="kolam">Kolam</button>
-            <button role="tab" id="tab-kebun" aria-selected="false" data-k="kebun">Kebun</button>
-            <button role="tab" id="tab-kandang" aria-selected="false" data-k="kandang">Kandang</button>
-            <button role="tab" id="tab-rumah" aria-selected="false" data-k="rumah">Rumah</button>
+            <button role="tab" id="tab-pond" aria-selected="true" data-k="pond">Pond</button>
+            <button role="tab" id="tab-farm" aria-selected="false" data-k="farm">Farm</button>
+            <button role="tab" id="tab-livestock" aria-selected="false" data-k="livestock">Livestock</button>
+            <button role="tab" id="tab-home" aria-selected="false" data-k="home">Home</button>
           </div>
         </div>
         <div class="proof">
-          <span><svg width="18" height="18"><use href="#i-check"/></svg>Otomasi tetap jalan saat internet putus</span>
-          <span><svg width="18" height="18"><use href="#i-check"/></svg>Pasang lewat Bluetooth</span>
-          <span><svg width="18" height="18"><use href="#i-check"/></svg>Bahasa Indonesia penuh</span>
+          <span><svg width="18" height="18"><use href="#i-check"/></svg>Automations keep running offline</span>
+          <span><svg width="18" height="18"><use href="#i-check"/></svg>Set up over Bluetooth</span>
+          <span><svg width="18" height="18"><use href="#i-check"/></svg>Built for Indonesian farms</span>
         </div>
       </div>
 
       <div class="stage">
         <div class="phone">
           <div class="phone-screen">
-            <img id="phoneImg" src="img/v3-01-beranda-kolam.webp" alt="Beranda aplikasi Sysnergi untuk Kolam 2: oksigen 4,1 mg/L, perlu dicek" width="780" height="1688">
+            <img id="phoneImg" src="img/v3-01-beranda-kolam.webp" alt="Sysnergi home screen for Pond 2: dissolved oxygen 4.1 mg/L, needs attention" width="780" height="1688">
           </div>
         </div>
         <div class="float float-a" aria-live="polite">
           <span class="ic" id="fa-ic" style="background:var(--tint);color:var(--blue)"><svg width="22" height="22"><use href="#i-fan"/></svg></span>
-          <span><b id="fa-t">Aerator menyala otomatis</b><small id="fa-s">Oksigen 4,1 mg/L · batas 4</small></span>
+          <span><b id="fa-t">Aerator switched on</b><small id="fa-s">Oxygen 4.1 mg/L · limit 4</small></span>
         </div>
         <div class="float float-b">
           <span class="ic" style="background:var(--good-soft);color:var(--good)"><svg width="22" height="22"><use href="#i-shield"/></svg></span>
-          <span><b id="fb-t">Hub SYN-0A41</b><small id="fb-s">Online · 5 sensor aktif</small></span>
+          <span><b id="fb-t">Hub SYN-0A41</b><small id="fb-s">Online · 5 sensors active</small></span>
         </div>
       </div>
     </div>
   </section>
 
-  <div class="ribbon" aria-label="Contoh pembacaan langsung Kolam 2">
+  <div class="ribbon" aria-label="Sample live readings from Pond 2">
     <div class="wrap ribbon-in">
-      <div class="metric"><span class="k">Oksigen terlarut</span><span class="v">4,1<small>mg/L</small></span><span class="r" style="color:var(--warn-ink)">Waspada · aman ≥ 5</span></div>
-      <div class="metric"><span class="k">Suhu air</span><span class="v">28,4<small>°C</small></span><span class="r">Ideal 26–30</span></div>
-      <div class="metric"><span class="k">pH air</span><span class="v">7,2</span><span class="r">Aman 6,5–8,5</span></div>
-      <div class="metric"><span class="k">Amonia</span><span class="v">0,02<small>ppm</small></span><span class="r">Aman &lt; 0,1</span></div>
-      <div class="metric"><span class="k">Tinggi air</span><span class="v">82<small>cm</small></span><span class="r">Target 70–80</span></div>
+      <div class="metric"><span class="k">Dissolved oxygen</span><span class="v">4.1<small>mg/L</small></span><span class="r" style="color:var(--warn-ink)">Watch · safe ≥ 5</span></div>
+      <div class="metric"><span class="k">Water temp</span><span class="v">28.4<small>°C</small></span><span class="r">Ideal 26–30</span></div>
+      <div class="metric"><span class="k">Water pH</span><span class="v">7.2</span><span class="r">Safe 6.5–8.5</span></div>
+      <div class="metric"><span class="k">Ammonia</span><span class="v">0.02<small>ppm</small></span><span class="r">Safe &lt; 0.1</span></div>
+      <div class="metric"><span class="k">Water level</span><span class="v">82<small>cm</small></span><span class="r">Target 70–80</span></div>
     </div>
   </div>
 
-  <section class="block" id="cara-kerja">
+  <section class="block" id="how-it-works">
     <div class="wrap night">
       <div>
         <div class="head">
-          <span class="eyebrow">Satu malam di Kolam 2</span>
-          <h2>Masalah kolam paling sering terjadi saat Anda tidur.</h2>
-          <p class="lead">Ikan dan lumut sama-sama memakai oksigen di malam hari. Titik terendahnya biasanya antara pukul 03.00 dan 05.00. Hub menangani jam-jam itu untuk Anda.</p>
+          <span class="eyebrow">One night at Pond 2</span>
+          <h2>Pond problems usually happen while you sleep.</h2>
+          <p class="lead">Fish and algae both consume oxygen at night. The low point usually lands between 3 and 5 a.m. The hub handles those hours for you.</p>
         </div>
         <ol class="steps">
-          <li><time>22.00</time><div><b>Hub mencatat tiap menit</b><p>Oksigen 6,3 mg/L. Semua aman, aerator mati untuk hemat listrik.</p></div></li>
-          <li><time>02.10</time><div><b>Oksigen tembus batas 4 mg/L</b><p>Hub menyalakan aerator lewat relay. Aturan disimpan di hub, jadi tidak perlu menunggu server.</p></div></li>
-          <li><time>02.11</time><div><b>Anda dapat notifikasi</b><p>"Oksigen Kolam 2 turun ke 3,9. Aerator sudah menyala otomatis."</p></div></li>
-          <li><time>05.40</time><div><b>Oksigen pulih, aerator mati</b><p>Pagi harinya, Asisten menyarankan jadwal aerator 00.00–05.00 supaya tidak terulang.</p></div></li>
+          <li><time>22:00</time><div><b>The hub logs every minute</b><p>Oxygen at 6.3 mg/L. All safe, aerator off to save power.</p></div></li>
+          <li><time>02:10</time><div><b>Oxygen crosses 4 mg/L</b><p>The hub turns the aerator on through its relay. The rule lives on the hub, so it never waits on a server.</p></div></li>
+          <li><time>02:11</time><div><b>You get a notification</b><p>"Pond 2 oxygen dropped to 3.9. The aerator is already running."</p></div></li>
+          <li><time>05:40</time><div><b>Oxygen recovers, aerator off</b><p>In the morning the Assistant suggests running the aerator from 00:00 to 05:00 so it doesn't happen again.</p></div></li>
         </ol>
       </div>
       <figure class="chart-card" style="margin:0">
         <div class="chart-top">
-          <div><b>Oksigen terlarut · Kolam 2</b><small>20.00 – 08.00 · mg/L</small></div>
-          <span class="pill good"><i></i>Pulih otomatis</span>
+          <div><b>Dissolved oxygen · Pond 2</b><small>20:00 – 08:00 · mg/L</small></div>
+          <span class="pill good"><i></i>Recovered automatically</span>
         </div>
-        <svg id="doChart" viewBox="0 0 560 300" role="img" aria-label="Grafik oksigen terlarut semalam: turun dari 6,4 ke 3,6 mg/L sekitar pukul 04.00, aerator menyala 02.10 sampai 05.40, lalu naik kembali ke 6,0"></svg>
+        <svg id="doChart" viewBox="0 0 560 300" role="img" aria-label="Overnight dissolved oxygen chart: falls from 6.4 to 3.6 mg/L around 03:30, aerator runs from 02:10 to 05:40, then recovers to 6.0"></svg>
         <div class="legend">
-          <span><i style="background:var(--blue)"></i>Oksigen terlarut</span>
-          <span><i style="background:var(--warn)"></i>Batas aerator 4 mg/L</span>
-          <span><i style="background:color-mix(in srgb,var(--blue-2) 35%,transparent);height:10px"></i>Aerator menyala</span>
+          <span><i style="background:var(--blue)"></i>Dissolved oxygen</span>
+          <span><i style="background:var(--warn)"></i>Aerator threshold 4 mg/L</span>
+          <span><i style="background:color-mix(in srgb,var(--blue-2) 35%,transparent);height:10px"></i>Aerator running</span>
         </div>
       </figure>
     </div>
   </section>
 
-  <section class="block" id="fitur" style="padding-top:0">
+  <section class="block" id="features" style="padding-top:0">
     <div class="wrap">
       <div class="head">
-        <span class="eyebrow">Di dalam aplikasi</span>
-        <h2>Semua yang Anda perlu tahu, tanpa membaca grafik rumit.</h2>
+        <span class="eyebrow">Inside the app</span>
+        <h2>Everything you need to know, without reading complicated charts.</h2>
       </div>
       <div class="bento">
         <article class="tile ai span-4">
           <div class="ai-copy">
-            <span class="eyebrow">Asisten Sysnergi</span>
-            <h3 style="font-size:1.7rem">Tanya pakai bahasa sehari-hari. Jawabannya dari data kolam Anda sendiri.</h3>
-            <div class="quote"><b>"Kenapa oksigennya turun terus tiap subuh?"</b><br>Dalam 7 hari terakhir, oksigen selalu paling rendah pukul 03.00–05.00. Usulan: aerator menyala 00.00–05.00 setiap hari.</div>
-            <div class="chips"><span>Cek semua kolam</span><span>Buat otomasi</span><span>Jadwal kalibrasi</span></div>
-            <p style="font-size:.85rem">Saran AI. Keputusan tetap di tangan Anda: setiap usulan bisa disimulasikan dulu sebelum diaktifkan.</p>
+            <span class="eyebrow">Sysnergi Assistant</span>
+            <h3 style="font-size:1.7rem">Ask in plain language. Answers come from your own pond data.</h3>
+            <div class="quote"><b>"Why does the oxygen keep dropping every dawn?"</b><br>Over the last 7 days, oxygen bottomed out between 03:00 and 05:00. Suggestion: run the aerator from 00:00 to 05:00 every day.</div>
+            <div class="chips"><span>Check all ponds</span><span>Create automation</span><span>Schedule calibration</span></div>
+            <p style="font-size:.85rem">AI suggestions only. You decide: every suggestion can be simulated before you turn it on.</p>
           </div>
-          <div class="ai-shot"><img src="img/v3-14-chat-asisten-ai.webp" alt="Layar chat Asisten Sysnergi dengan grafik oksigen terendah per hari" loading="lazy"></div>
+          <div class="ai-shot"><img src="img/v3-14-chat-asisten-ai.webp" alt="Sysnergi Assistant chat with a chart of daily minimum oxygen" loading="lazy"></div>
         </article>
 
         <article class="tile span-2">
           <span class="ico"><svg width="24" height="24"><use href="#i-bell"/></svg></span>
-          <h3>Notifikasi yang bisa ditindaklanjuti</h3>
-          <p>Setiap peringatan menyebut angka, batas, dan apa yang sudah dilakukan hub. Bukan sekadar "sensor error".</p>
+          <h3>Alerts you can act on</h3>
+          <p>Every alert names the reading, the limit, and what the hub already did. Never just "sensor error".</p>
           <div class="bars" aria-hidden="true"><i style="height:60%"></i><i style="height:75%"></i><i style="height:68%"></i><i style="height:85%"></i><i class="w" style="height:45%"></i><i class="w" style="height:38%"></i><i class="on" style="height:70%"></i></div>
         </article>
 
         <article class="tile span-2">
           <span class="ico"><svg width="24" height="24"><use href="#i-chart"/></svg></span>
-          <h3>Telemetri per jam, hari, minggu</h3>
-          <p>Bandingkan kolam satu dengan lainnya dan unduh laporan untuk catatan panen.</p>
-          <div class="shot-crop" style="height:180px"><img src="img/v3-07-telemetri.webp" alt="Layar telemetri" loading="lazy" style="margin-top:-150px"></div>
+          <h3>Telemetry by hour, day, week</h3>
+          <p>Compare one pond with another and export reports for your harvest records.</p>
+          <div class="shot-crop" style="height:180px"><img src="img/v3-07-telemetri.webp" alt="Telemetry screen" loading="lazy" style="margin-top:-150px"></div>
         </article>
 
         <article class="tile span-2">
           <span class="ico"><svg width="24" height="24"><use href="#i-flask"/></svg></span>
-          <h3>Kalibrasi pH dipandu</h3>
-          <p>Larutan buffer 7 lalu 4, langkah demi langkah. Aplikasi mengingatkan saat probe perlu dikalibrasi lagi.</p>
+          <h3>Guided pH calibration</h3>
+          <p>Buffer 7, then buffer 4, step by step. The app reminds you when the probe is due again.</p>
           <div class="bars" aria-hidden="true"><i style="height:30%"></i><i style="height:30%"></i><i class="on" style="height:55%"></i><i class="on" style="height:55%"></i><i class="on" style="height:100%"></i></div>
         </article>
 
         <article class="tile span-2">
           <span class="ico"><svg width="24" height="24"><use href="#i-users"/></svg></span>
-          <h3>Ajak keluarga &amp; pekerja</h3>
-          <p>Beri peran pemilik, pengelola, atau pekerja. Pekerja bisa menyalakan pompa tanpa bisa mengubah otomasi.</p>
+          <h3>Invite family &amp; workers</h3>
+          <p>Give each person an owner, operator or viewer role. Workers can run the pump without changing automations.</p>
         </article>
 
         <article class="tile span-3">
           <span class="ico"><svg width="24" height="24"><use href="#i-fan"/></svg></span>
-          <h3>Otomasi dengan bahasa jelas</h3>
-          <p>"Jika oksigen &lt; 4 mg/L, nyalakan aerator." "Jika tinggi air &lt; 70 cm, isi sampai 80 cm, maksimal 45 menit." Aturannya tersimpan di hub.</p>
+          <h3>Automations in plain words</h3>
+          <p>"If oxygen &lt; 4 mg/L, turn on the aerator." "If water level &lt; 70 cm, fill to 80 cm, 45 minutes max." Rules are stored on the hub.</p>
           <div class="rules">
-            <div class="rule"><span class="ico"><svg width="18" height="18"><use href="#i-fan"/></svg></span><span><b>Oksigen &lt; 4 mg/L</b> → nyalakan aerator</span><span class="tgl" aria-label="Aktif"></span></div>
-            <div class="rule"><span class="ico"><svg width="18" height="18"><use href="#i-chart"/></svg></span><span><b>Tinggi air &lt; 70 cm</b> → isi sampai 80 cm</span><span class="tgl" aria-label="Aktif"></span></div>
+            <div class="rule"><span class="ico"><svg width="18" height="18"><use href="#i-fan"/></svg></span><span><b>Oxygen &lt; 4 mg/L</b> → aerator on</span><span class="tgl" aria-label="On"></span></div>
+            <div class="rule"><span class="ico"><svg width="18" height="18"><use href="#i-chart"/></svg></span><span><b>Level &lt; 70 cm</b> → fill to 80 cm</span><span class="tgl" aria-label="On"></span></div>
           </div>
         </article>
 
         <article class="tile span-3">
           <span class="ico"><svg width="24" height="24"><use href="#i-wifi-off"/></svg></span>
-          <h3>Tetap bekerja saat sinyal hilang</h3>
-          <p>Hub punya jam RTC sendiri, jadi jadwal dan aturan tetap jalan tanpa internet. Data disimpan dan dikirim begitu Wi-Fi kembali. Kalau sensor oksigen gagal terbaca, aerator justru dinyalakan untuk berjaga-jaga.</p>
+          <h3>Keeps working when the signal drops</h3>
+          <p>The hub has its own real-time clock, so schedules and rules keep running without internet. Readings are buffered and synced once Wi-Fi is back. If the oxygen sensor stops responding, the aerator is switched on as a precaution.</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
-            <span class="pill warn"><i></i>Hub offline 12 menit</span>
-            <span class="pill good"><i></i>2 aturan tetap jalan</span>
+            <span class="pill warn"><i></i>Hub offline 12 min</span>
+            <span class="pill good"><i></i>2 rules still running</span>
           </div>
         </article>
       </div>
@@ -509,51 +544,51 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <section class="block" id="hub" style="padding-top:0">
     <div class="wrap">
       <div class="head">
-        <span class="eyebrow">Perangkat keras · Paket Kolam</span>
-        <h2>Satu kotak di tepi kolam. Lima parameter air, dua alat dikendalikan.</h2>
-        <p class="lead">Semua kabel keluar dari bawah casing supaya air hujan tidak masuk. Sensor dicolok ke port yang mendeteksi jenisnya sendiri.</p>
+        <span class="eyebrow">Hardware · Pond Kit</span>
+        <h2>One box by the pond. Five water readings, two machines under control.</h2>
+        <p class="lead">Every cable exits from the bottom of the enclosure so rain stays out. Sensors plug into ports that detect what is connected.</p>
       </div>
       <div class="hub">
         <figure class="hub-photo" style="margin:0">
-          <img src="img/hub-2.webp" alt="Sysnergi Hub: kotak putih IP65 dengan LED status biru, tombol, stiker QR, dan kabel sensor di bagian bawah" loading="lazy">
-          <figcaption><span>LED status RGB</span><span>1 tombol pairing</span><span>Stiker QR untuk klaim</span></figcaption>
+          <img src="img/hub-2.webp" alt="Sysnergi Hub: white IP65 enclosure with a blue status LED, a button, a QR sticker, and sensor cables at the bottom" loading="lazy">
+          <figcaption><span>RGB status LED</span><span>1 pairing button</span><span>QR sticker to claim</span></figcaption>
         </figure>
         <div class="spec">
-          <h3>Spesifikasi hub</h3>
+          <h3>Hub specs</h3>
           <dl>
-            <dt>Otak</dt><dd>ESP32-WROOM-32</dd>
-            <dt>Casing</dt><dd>Box IP65 ±20 × 20 × 10 cm</dd>
-            <dt>Port sensor</dt><dd>6 × GX16-8, deteksi otomatis</dd>
-            <dt>Bus industri</dt><dd>1 × RS485 Modbus</dd>
-            <dt>Output</dt><dd>4 relay ke panel kontaktor</dd>
-            <dt>Koneksi</dt><dd>Wi-Fi 2,4 GHz + Bluetooth</dd>
-            <dt>Daya</dt><dd>PLN 220 V → 12 / 5 / 3,3 V</dd>
-            <dt>Jam offline</dt><dd>RTC DS3231 + baterai</dd>
+            <dt>Controller</dt><dd>ESP32-WROOM-32</dd>
+            <dt>Enclosure</dt><dd>IP65 box, ±20 × 20 × 10 cm</dd>
+            <dt>Sensor ports</dt><dd>6 × GX16-8, auto-detect</dd>
+            <dt>Field bus</dt><dd>1 × RS485 Modbus</dd>
+            <dt>Outputs</dt><dd>4 relays to contactor panel</dd>
+            <dt>Wireless</dt><dd>Wi-Fi 2.4 GHz + Bluetooth</dd>
+            <dt>Power</dt><dd>220 V mains → 12 / 5 / 3.3 V</dd>
+            <dt>Offline clock</dt><dd>DS3231 RTC + battery</dd>
           </dl>
         </div>
       </div>
 
-      <div class="ports" role="region" aria-label="Tampak bawah: port dan kabel" tabindex="0">
+      <div class="ports" role="region" aria-label="Bottom view: ports and cables" tabindex="0">
         <div class="ports-row">
-          <div class="port"><code>P1</code><span class="jack"></span><span class="lbl"><b>Suhu air</b><small>DS18B20</small></span></div>
-          <div class="port"><code>P2</code><span class="jack"></span><span class="lbl"><b>Oksigen</b><small>Analog DO</small></span></div>
-          <div class="port"><code>P3</code><span class="jack"></span><span class="lbl"><b>pH air</b><small>PH-4502C</small></span></div>
-          <div class="port"><code>P4</code><span class="jack"></span><span class="lbl"><b>Tinggi air</b><small>A02YYUW ultrasonik</small></span></div>
-          <div class="port"><code>P5</code><span class="jack spare"></span><span class="lbl off"><b>Cadangan</b><small>port kosong</small></span></div>
-          <div class="port"><code>P6</code><span class="jack spare"></span><span class="lbl off"><b>Cadangan</b><small>port kosong</small></span></div>
-          <div class="port"><code>RS485</code><span class="jack big"></span><span class="lbl"><b>Amonia NH₄⁺</b><small>probe Modbus</small></span></div>
-          <div class="port"><code>RELAY</code><span class="jack big"></span><span class="lbl"><b>Panel kontaktor</b><small>R1 aerator · R2 pompa</small></span></div>
-          <div class="port"><code>220 V</code><span class="jack big"></span><span class="lbl"><b>Daya PLN</b><small>lewat RCBO 30 mA</small></span></div>
+          <div class="port"><code>P1</code><span class="jack"></span><span class="lbl"><b>Water temp</b><small>DS18B20</small></span></div>
+          <div class="port"><code>P2</code><span class="jack"></span><span class="lbl"><b>Oxygen</b><small>Analog DO</small></span></div>
+          <div class="port"><code>P3</code><span class="jack"></span><span class="lbl"><b>Water pH</b><small>PH-4502C</small></span></div>
+          <div class="port"><code>P4</code><span class="jack"></span><span class="lbl"><b>Water level</b><small>A02YYUW ultrasonic</small></span></div>
+          <div class="port"><code>P5</code><span class="jack spare"></span><span class="lbl off"><b>Spare</b><small>empty port</small></span></div>
+          <div class="port"><code>P6</code><span class="jack spare"></span><span class="lbl off"><b>Spare</b><small>empty port</small></span></div>
+          <div class="port"><code>RS485</code><span class="jack big"></span><span class="lbl"><b>Ammonia NH₄⁺</b><small>Modbus probe</small></span></div>
+          <div class="port"><code>RELAY</code><span class="jack big"></span><span class="lbl"><b>Contactor panel</b><small>R1 aerator · R2 pump</small></span></div>
+          <div class="port"><code>220 V</code><span class="jack big"></span><span class="lbl"><b>Mains power</b><small>via 30 mA RCBO</small></span></div>
         </div>
       </div>
 
       <div class="install">
-        <figure><img src="img/hub-3.webp" alt="Hub terpasang di tiang di tepi kolam, probe dalam pipa PVC berlubang, kincir aerator menyala di belakang" loading="lazy"></figure>
+        <figure><img src="img/hub-3.webp" alt="Hub mounted on a pole at the pond edge, probes in a perforated PVC pipe, a paddlewheel aerator running behind" loading="lazy"></figure>
         <ul>
-          <li><b>Hub di tiang</b>±1,5 m dari tanah, di bawah atap kecil, sisi kabel menghadap ke bawah.</li>
-          <li><b>Probe dalam pipa PVC berlubang</b>Oksigen, pH, dan suhu digantung ±30 cm di dalam air, tidak menyentuh lumpur.</li>
-          <li><b>Sensor tinggi air di braket</b>Menghadap tegak lurus ke air, minimal 10 cm di atas permukaan tertinggi.</li>
-          <li><b>Panel kontaktor terpisah</b>Arus motor aerator dan pompa lewat box sendiri. Hub hanya mengirim sinyal relay.</li>
+          <li><b>Hub on a pole</b>About 1.5 m above ground, under a small roof, cable side facing down.</li>
+          <li><b>Probes in a perforated PVC pipe</b>Oxygen, pH and temperature hang about 30 cm underwater, clear of the mud.</li>
+          <li><b>Level sensor on a bracket</b>Pointing straight down at the water, at least 10 cm above the highest level.</li>
+          <li><b>Separate contactor panel</b>Aerator and pump motor current runs through its own box. The hub only sends the relay signal.</li>
         </ul>
       </div>
     </div>
@@ -562,52 +597,52 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <section class="block" style="padding-top:0">
     <div class="wrap">
       <div class="head">
-        <span class="eyebrow">Pemasangan</span>
-        <h2>Dari kardus ke data pertama dalam tiga langkah.</h2>
+        <span class="eyebrow">Setup</span>
+        <h2>From the box to your first reading in three steps.</h2>
       </div>
       <div class="setup">
         <article>
           <span class="n">1</span>
-          <h3>Pilih jenis perangkat</h3>
-          <p>Hub kolam, sensor kebun, atau perangkat rumah. Aplikasi menyesuaikan sensor yang dicari.</p>
-          <div class="mini"><img src="img/v3-10a-tambah-pilih-jenis.webp" alt="Layar pilih jenis perangkat" loading="lazy"></div>
+          <h3>Pick the device type</h3>
+          <p>Pond hub, farm sensor or home device. The app adjusts which sensors it looks for.</p>
+          <div class="mini"><img src="img/v3-10a-tambah-pilih-jenis.webp" alt="Choose device type screen" loading="lazy"></div>
         </article>
         <article>
           <span class="n">2</span>
-          <h3>Tekan tombol, pindai Bluetooth</h3>
-          <p>Tahan tombol di hub sampai LED berkedip biru. Ponsel menemukan hub dan mencocokkan kode di stiker.</p>
-          <div class="mini"><img src="img/v3-10c-tambah-pindai-bluetooth.webp" alt="Layar pindai Bluetooth menemukan hub" loading="lazy"></div>
+          <h3>Press the button, scan Bluetooth</h3>
+          <p>Hold the hub button until the LED blinks blue. Your phone finds the hub and matches the code on the sticker.</p>
+          <div class="mini"><img src="img/v3-10c-tambah-pindai-bluetooth.webp" alt="Bluetooth scan screen finding a hub" loading="lazy"></div>
         </article>
         <article>
           <span class="n">3</span>
-          <h3>Sambungkan ke Wi-Fi</h3>
-          <p>Pilih jaringan 2,4 GHz dan masukkan sandi. Kalau gagal, aplikasi menjelaskan sebabnya dan cara memperbaikinya.</p>
-          <div class="mini"><img src="img/v3-10d-tambah-wifi.webp" alt="Layar sambungkan hub ke Wi-Fi" loading="lazy"></div>
+          <h3>Connect to Wi-Fi</h3>
+          <p>Pick a 2.4 GHz network and enter the password. If it fails, the app explains why and how to fix it.</p>
+          <div class="mini"><img src="img/v3-10d-tambah-wifi.webp" alt="Connect hub to Wi-Fi screen" loading="lazy"></div>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="block" id="rumah" style="padding-top:0">
+  <section class="block" id="home" style="padding-top:0">
     <div class="wrap">
       <div class="home">
         <div class="home-copy">
-          <span class="tag-new">Baru · Sysnergi Rumah</span>
-          <h2>Aplikasi yang sama sekarang juga mengurus rumah.</h2>
-          <p class="lead">Lampu Zigbee, AC lewat remote IR, kamera, kunci pintu, robot vakum. Pindah dari Kolam ke Rumah cukup satu ketukan.</p>
-          <div class="scenes" aria-label="Skenario sekali ketuk">
-            <span class="scene"><i style="background:linear-gradient(140deg,#FFB547,#FF7A45)">⌂</i>Pulang</span>
-            <span class="scene"><i style="background:#1C6FE8">↗</i>Pergi</span>
-            <span class="scene"><i style="background:#7B5CFF">☾</i>Tidur</span>
-            <span class="scene"><i style="background:#F472D0">▶</i>Nonton</span>
+          <span class="tag-new">New · Sysnergi Home</span>
+          <h2>The same app now runs your house too.</h2>
+          <p class="lead">Zigbee lights, AC through an IR remote, cameras, door locks, robot vacuums. Switching from Pond to Home takes one tap.</p>
+          <div class="scenes" aria-label="One-tap scenes">
+            <span class="scene"><i style="background:linear-gradient(140deg,#FFB547,#FF7A45)">⌂</i>Arrive</span>
+            <span class="scene"><i style="background:#1C6FE8">↗</i>Leave</span>
+            <span class="scene"><i style="background:#7B5CFF">☾</i>Sleep</span>
+            <span class="scene"><i style="background:#F472D0">▶</i>Movie</span>
           </div>
-          <p style="font-size:.95rem;color:rgba(255,255,255,.85)">Bekerja dengan perangkat Wi-Fi, Zigbee, dan Bluetooth. AC lama tanpa Wi-Fi bisa dikendalikan dengan Remote IR Sysnergi.</p>
+          <p style="font-size:.95rem;color:rgba(255,255,255,.85)">Works with Wi-Fi, Zigbee and Bluetooth devices. Older ACs without Wi-Fi can be controlled with the Sysnergi IR Remote.</p>
         </div>
-        <div class="dev-grid" aria-label="Contoh perangkat di Rumah Darto">
-          <div class="dev lamp"><span class="tg"></span><span class="di"><svg width="20" height="20"><use href="#i-bulb"/></svg></span><b>Lampu ruang tamu</b><small>Nyala · 80%</small><span class="proto">Zigbee</span></div>
-          <div class="dev ac"><span class="tg"></span><span class="di"><svg width="20" height="20"><use href="#i-snow"/></svg></span><b>AC kamar</b><small>Dingin · 24 °C</small><span class="proto">Remote IR</span></div>
-          <div class="dev lock"><span class="safe"><svg width="14" height="14"><use href="#i-shield"/></svg>Aman</span><span class="di"><svg width="20" height="20"><use href="#i-lock"/></svg></span><b>Kunci pintu</b><small>Terkunci</small><span class="proto">Bluetooth</span></div>
-          <div class="dev vac"><span class="tg"></span><span class="di"><svg width="20" height="20"><use href="#i-bot"/></svg></span><b>Robot vakum</b><small>Mengisi · 76%</small><span class="proto">Wi-Fi</span></div>
+        <div class="dev-grid" aria-label="Sample devices in the Darto household">
+          <div class="dev lamp"><span class="tg"></span><span class="di"><svg width="20" height="20"><use href="#i-bulb"/></svg></span><b>Living room light</b><small>On · 80%</small><span class="proto">Zigbee</span></div>
+          <div class="dev ac"><span class="tg"></span><span class="di"><svg width="20" height="20"><use href="#i-snow"/></svg></span><b>Bedroom AC</b><small>Cool · 24 °C</small><span class="proto">IR remote</span></div>
+          <div class="dev lock"><span class="safe"><svg width="14" height="14"><use href="#i-shield"/></svg>Secure</span><span class="di"><svg width="20" height="20"><use href="#i-lock"/></svg></span><b>Front door</b><small>Locked</small><span class="proto">Bluetooth</span></div>
+          <div class="dev vac"><span class="tg"></span><span class="di"><svg width="20" height="20"><use href="#i-bot"/></svg></span><b>Robot vacuum</b><small>Charging · 76%</small><span class="proto">Wi-Fi</span></div>
         </div>
       </div>
     </div>
@@ -616,104 +651,161 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <section class="block" style="padding-top:0">
     <div class="wrap web">
       <div class="head" style="margin:0">
-        <span class="eyebrow">Dashboard web</span>
-        <h2>Pantau banyak lokasi dari layar besar.</h2>
-        <p class="lead">Untuk pemilik dengan beberapa tambak atau kandang: semua hub, peringatan, dan laporan dalam satu tampilan di browser.</p>
+        <span class="eyebrow">Web dashboard</span>
+        <h2>Watch every site from a big screen.</h2>
+        <p class="lead">For owners running several ponds or barns: every hub, alert and report in one browser view.</p>
       </div>
       <div class="browser">
         <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
-        <img src="img/v3-19-web-dashboard.webp" alt="Dashboard web Sysnergi dengan ringkasan semua kolam" loading="lazy" width="1600" height="1289">
+        <img src="img/v3-19-web-dashboard.webp" alt="Sysnergi web dashboard summarising every pond" loading="lazy" width="1600" height="1289">
       </div>
     </div>
   </section>
 
-  <section class="block" id="harga" style="padding-top:0">
+  <section class="block" id="pricing" style="padding-top:0">
     <div class="wrap">
       <div class="price-top">
         <div class="head" style="margin:0">
-          <span class="eyebrow">Harga</span>
-          <h2>Mulai gratis. Bayar saat usahanya tumbuh.</h2>
+          <span class="eyebrow">Pricing · planned at launch</span>
+          <h2>Start free. Pay when the business grows.</h2>
         </div>
-        <div class="seg" role="tablist" aria-label="Jenis paket" id="planSeg">
-          <button role="tab" id="plan-usaha" aria-selected="true" data-p="usaha">Usaha</button>
-          <button role="tab" id="plan-rumah" aria-selected="false" data-p="rumah">Rumah</button>
+        <div class="seg" role="tablist" aria-label="Plan type" id="planSeg">
+          <button role="tab" id="plan-biz" aria-selected="true" data-p="biz">Business</button>
+          <button role="tab" id="plan-home" aria-selected="false" data-p="home">Home</button>
         </div>
       </div>
 
-      <div class="plans" id="plans-usaha">
+      <div class="plans" id="plans-biz">
         <article class="plan">
-          <h3>Gratis</h3>
+          <h3>Free</h3>
           <div class="price">Rp 0</div>
           <ul>
             <li><svg width="16" height="16"><use href="#i-check"/></svg>1 hub</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Riwayat data 24 jam</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Notifikasi bahaya &amp; kontrol manual</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>24 hours of history</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Danger alerts &amp; manual control</li>
           </ul>
-          <a class="btn btn-ghost" href="#top">Mulai gratis</a>
+          <a class="btn btn-ghost" href="#waitlist">Join the waitlist</a>
         </article>
         <article class="plan">
           <h3>Plus</h3>
-          <div class="price">Rp 390 rb<small>/tahun</small></div>
+          <div class="price">Rp 390k<small>/year</small></div>
           <ul>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>3 hub</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Riwayat data 90 hari</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Asisten AI 30× per bulan</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>3 hubs</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>90 days of history</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>AI Assistant 30× a month</li>
           </ul>
-          <a class="btn btn-ghost" href="#top">Pilih Plus</a>
+          <a class="btn btn-ghost" href="#waitlist">Join the waitlist</a>
         </article>
         <article class="plan hot">
-          <span class="pill">Paling lengkap</span>
+          <span class="pill">Most complete</span>
           <h3>Pro</h3>
-          <div class="price">Rp 1,19 jt<small>/tahun</small></div>
+          <div class="price">Rp 1.19M<small>/year</small></div>
           <ul>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Hub tanpa batas untuk semua kolam</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Asisten AI tanpa batas + analisis mingguan</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Riwayat 2 tahun &amp; unduh laporan</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Ajak keluarga &amp; pekerja dengan peran</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Unlimited hubs for every pond</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Unlimited AI Assistant + weekly analysis</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>2 years of history &amp; report export</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Invite family &amp; workers with roles</li>
           </ul>
-          <a class="btn" href="#top">Coba Pro gratis 14 hari</a>
+          <a class="btn" href="#waitlist">Get 14 days of Pro free</a>
         </article>
       </div>
 
-      <div class="plans" id="plans-rumah" hidden>
+      <div class="plans" id="plans-home" hidden>
         <article class="plan">
-          <h3>Gratis</h3>
+          <h3>Free</h3>
           <div class="price">Rp 0</div>
           <ul>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Sampai 10 perangkat</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>5 otomasi</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Notifikasi langsung</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Up to 10 devices</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>5 automations</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Instant notifications</li>
           </ul>
-          <a class="btn btn-ghost" href="#top">Mulai gratis</a>
+          <a class="btn btn-ghost" href="#waitlist">Join the waitlist</a>
         </article>
         <article class="plan hot">
-          <span class="pill">Paling dipilih</span>
-          <h3>Rumah Plus</h3>
-          <div class="price">Rp 24 rb<small>/bulan</small></div>
+          <span class="pill">Most popular</span>
+          <h3>Home Plus</h3>
+          <div class="price">Rp 24k<small>/month</small></div>
           <ul>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Perangkat &amp; otomasi tanpa batas</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Rekaman CCTV di cloud 7 hari</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Kunci tamu tanpa batas</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Laporan hemat listrik bulanan</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Unlimited devices &amp; automations</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>7 days of cloud CCTV recording</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Unlimited guest keys</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Monthly energy-saving report</li>
           </ul>
-          <a class="btn" href="#top">Coba Plus gratis 14 hari</a>
+          <a class="btn" href="#waitlist">Get 14 days of Plus free</a>
         </article>
         <article class="plan">
-          <h3>Rumah + Usaha</h3>
-          <div class="price">Rp 79 rb<small>/bulan</small></div>
-          <p class="sub">Rumah, Kolam &amp; Kebun dalam satu akun</p>
+          <h3>Home + Business</h3>
+          <div class="price">Rp 79k<small>/month</small></div>
+          <p class="sub">Home, ponds and fields in one account</p>
           <ul>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Semua fitur Rumah Plus</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Laporan panen &amp; kualitas air</li>
-            <li><svg width="16" height="16"><use href="#i-check"/></svg>Tim sampai 5 orang</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Everything in Home Plus</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Harvest &amp; water-quality reports</li>
+            <li><svg width="16" height="16"><use href="#i-check"/></svg>Team of up to 5 people</li>
           </ul>
-          <a class="btn btn-ghost" href="#top">Pilih Rumah + Usaha</a>
+          <a class="btn btn-ghost" href="#waitlist">Join the waitlist</a>
         </article>
       </div>
 
       <div class="note">
         <svg width="22" height="22"><use href="#i-shield"/></svg>
-        <p>Notifikasi bahaya, kontrol manual, dan otomasi yang sudah aktif tetap jalan walau Anda berhenti berlangganan. <span id="payNote">Bayar lewat Google Play, batalkan kapan saja.</span></p>
+        <p>Danger alerts, manual control and automations you already set up keep working even if you stop paying. <span id="payNote">Billed through Google Play, cancel anytime.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="waitlist" style="padding-top:0">
+    <div class="wrap wl">
+      <div class="wl-copy">
+        <span class="eyebrow">Early access</span>
+        <h2>Get a hub for your pond before launch.</h2>
+        <p class="lead">We are rolling out the first batch of Pond Kits to a small group of farmers. Leave your details and we will reach out when a unit is ready for your area.</p>
+        <ul class="wl-perks">
+          <li><svg width="18" height="18"><use href="#i-check"/></svg><span><b>First in line</b> for the first Pond Kit batch.</span></li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg><span><b>Setup help</b> straight from the team that builds the hub.</span></li>
+          <li><svg width="18" height="18"><use href="#i-check"/></svg><span><b>One message</b> when there is news. No newsletter.</span></li>
+        </ul>
+      </div>
+
+      <div class="wl-card">
+        <form class="wl-form" id="wlForm" novalidate>
+          <div class="field">
+            <label for="wl-name">Your name</label>
+            <input id="wl-name" name="name" autocomplete="name" maxlength="80" required placeholder="Darto Wiyono">
+            <span class="err" id="wl-name-err"></span>
+          </div>
+          <div class="field">
+            <label for="wl-contact">Email or WhatsApp</label>
+            <input id="wl-contact" name="contact" autocomplete="email" maxlength="120" required placeholder="you@email.com or +62 812…">
+            <span class="err" id="wl-contact-err"></span>
+          </div>
+          <fieldset class="field full">
+            <legend>What do you want to monitor?</legend>
+            <div class="segs">
+              <label><input type="radio" name="segment" id="wl-seg-pond" value="pond" checked><svg width="20" height="20"><use href="#i-fan"/></svg>Fish pond</label>
+              <label><input type="radio" name="segment" id="wl-seg-farm" value="farm"><svg width="20" height="20"><use href="#i-chart"/></svg>Farm field</label>
+              <label><input type="radio" name="segment" id="wl-seg-livestock" value="livestock"><svg width="20" height="20"><use href="#i-shield"/></svg>Livestock</label>
+              <label><input type="radio" name="segment" id="wl-seg-home" value="home"><svg width="20" height="20"><use href="#i-bulb"/></svg>Home</label>
+            </div>
+          </fieldset>
+          <div class="field">
+            <label for="wl-sites"><span id="wl-sites-label">Number of ponds</span> <span class="hint">optional</span></label>
+            <input id="wl-sites" name="sites" type="number" inputmode="numeric" min="1" max="1000" placeholder="3">
+            <span class="err" id="wl-sites-err"></span>
+          </div>
+          <div class="field">
+            <label for="wl-city">City / regency <span class="hint">optional</span></label>
+            <input id="wl-city" name="city" autocomplete="address-level2" maxlength="80" placeholder="Boyolali">
+          </div>
+          <p class="wl-status" id="wlStatus" role="alert" hidden></p>
+          <button class="btn btn-primary" type="submit" id="wlSubmit">Join the waitlist</button>
+          <p class="wl-fine">We only use this to contact you about Sysnergi. No spam, no sharing.</p>
+        </form>
+        <div class="wl-done" id="wlDone" hidden>
+          <span class="orb" aria-hidden="true"></span>
+          <h3>You're on the list.</h3>
+          <p id="wlDoneMsg">We will contact you when a Pond Kit is ready for your area.</p>
+          <button class="btn btn-ghost" type="button" id="wlAgain">Edit my details</button>
+        </div>
       </div>
     </div>
   </section>
@@ -721,29 +813,29 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <section class="block" style="padding-top:0">
     <div class="wrap faq">
       <div class="head">
-        <span class="eyebrow">Pertanyaan</span>
-        <h2>Yang biasa ditanyakan petambak.</h2>
+        <span class="eyebrow">Questions</span>
+        <h2>What fish farmers usually ask.</h2>
       </div>
       <div>
         <details open>
-          <summary>Kalau internet di kolam putus, apa yang terjadi?</summary>
-          <p>Aturan otomasi disimpan di hub, dan hub punya jam sendiri. Aerator tetap menyala saat oksigen di bawah batas. Data disimpan di hub lalu dikirim ke aplikasi saat koneksi kembali. Aplikasi menampilkan status "Hub offline" setelah 90 detik tanpa kabar.</p>
+          <summary>What happens if the internet at the pond goes down?</summary>
+          <p>Automation rules are stored on the hub, and the hub keeps its own time. The aerator still switches on when oxygen falls below the limit. Readings are kept on the hub and synced once the connection is back. The app marks the hub as offline after 90 seconds without a check-in.</p>
         </details>
         <details>
-          <summary>Bagaimana kalau sensornya rusak?</summary>
-          <p>Untuk alat yang menjaga ikan tetap hidup, hub memilih aman: bila sensor oksigen gagal terbaca, aerator dinyalakan. Anda juga langsung mendapat notifikasi port mana yang bermasalah.</p>
+          <summary>What if a sensor breaks?</summary>
+          <p>For equipment that keeps fish alive, the hub fails safe: if the oxygen sensor can't be read, the aerator turns on. You also get an alert naming the port that has the problem.</p>
         </details>
         <details>
-          <summary>Apakah bisa dipakai di kolam yang sudah punya aerator?</summary>
-          <p>Bisa. Hub tidak mengalirkan arus motor. Hub mengirim sinyal ke kontaktor di panel terpisah, jadi aerator dan pompa yang sudah ada tinggal disambungkan ke panel itu oleh teknisi listrik.</p>
+          <summary>Can I use it with the aerator I already have?</summary>
+          <p>Yes. The hub never carries motor current. It signals contactors in a separate panel, so an electrician connects your existing aerator and pump to that panel.</p>
         </details>
         <details>
-          <summary>Seberapa sering sensor perlu dikalibrasi?</summary>
-          <p>pH dengan buffer 7 dan 4 tiap 30 hari, oksigen dengan udara jenuh tiap 30 hari. Suhu cukup dicek sekali. Aplikasi mengingatkan dan memandu setiap langkahnya.</p>
+          <summary>How often do the sensors need calibration?</summary>
+          <p>pH with buffers 7 and 4 every 30 days, oxygen against saturated air every 30 days. Temperature only needs one check. The app reminds you and walks you through each step.</p>
         </details>
         <details>
-          <summary>Siapa saja yang bisa melihat data kolam saya?</summary>
-          <p>Hanya orang yang Anda undang. Setiap anggota punya peran, dan Anda bisa mencabut akses kapan saja dari menu Kelola Anggota.</p>
+          <summary>Who can see my pond data?</summary>
+          <p>Only the people you invite. Each member has a role, and you can remove access anytime from Manage Members.</p>
         </details>
       </div>
     </div>
@@ -751,11 +843,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
   <section class="wrap final">
     <span class="orb" aria-hidden="true"></span>
-    <h2>Kolam lebih aman, panen lebih tenang.</h2>
-    <p class="lead">Pasang satu hub, lihat kondisi air hari ini juga.</p>
+    <h2>Safer ponds, calmer harvests.</h2>
+    <p class="lead">Install one hub and see today's water conditions today.</p>
     <div class="cta-row" style="justify-content:center">
-      <a class="btn btn-primary" href="#harga">Coba Pro gratis 14 hari</a>
-      <a class="btn btn-ghost" href="#hub">Spesifikasi hub</a>
+      <a class="btn btn-primary" href="#waitlist">Join the waitlist</a>
+      <a class="btn btn-ghost" href="#hub">Hub specs</a>
     </div>
   </section>
 </main>
@@ -763,25 +855,26 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <footer>
   <div class="wrap">
     <span>© 2026 Sysnergi</span>
-    <span>Kolam · Kebun · Kandang · Rumah</span>
+    <span>Pond · Farm · Livestock · Home</span>
   </div>
 </footer>
 
 <script>
 (function(){
-  // Hero: ganti beranda sesuai jenis usaha
-  var scenes={
-    kolam:{img:'img/v3-01-beranda-kolam.webp',alt:'Beranda Sysnergi untuk Kolam 2: oksigen 4,1 mg/L, perlu dicek',
-      ic:'#i-fan',at:'Aerator menyala otomatis',as:'Oksigen 4,1 mg/L · batas 4',bt:'Hub SYN-0A41',bs:'Online · 5 sensor aktif'},
-    kebun:{img:'img/v3-01b-beranda-kebun.webp',alt:'Beranda Sysnergi untuk Bedeng cabai: kelembapan tanah 28%, perlu disiram',
-      ic:'#i-bell',at:'Pompa siram pukul 16.00',as:'Tanah 28% · ideal 40–60%',bt:'Tandon air 35%',bs:'Rendah · isi sebelum besok'},
-    kandang:{img:'img/v3-01c-beranda-kandang.webp',alt:'Beranda Sysnergi untuk Kandang B broiler: suhu 29,1 °C, semua aman',
-      ic:'#i-fan',at:'Kipas mengikuti suhu',as:'29,1 °C · ideal 28–30 °C',bt:'Kandang B · Broiler',bs:'Umur ayam 21 hari'},
-    rumah:{img:'img/v4-21a-beranda-rumah.webp',alt:'Beranda Sysnergi Rumah: 6 perangkat menyala, semua aman',
-      ic:'#i-bulb',at:'6 perangkat menyala',as:'1,8 kWh listrik hari ini',bt:'Pintu depan terkunci',bs:'Yale · Bluetooth'}
-  };
-  var img=document.getElementById('phoneImg');
   function $(id){return document.getElementById(id)}
+
+  // Hero: swap the home screen per operation type
+  var scenes={
+    pond:{img:'img/v3-01-beranda-kolam.webp',alt:'Sysnergi home screen for Pond 2: dissolved oxygen 4.1 mg/L, needs attention',
+      ic:'#i-fan',at:'Aerator switched on',as:'Oxygen 4.1 mg/L · limit 4',bt:'Hub SYN-0A41',bs:'Online · 5 sensors active'},
+    farm:{img:'img/v3-01b-beranda-kebun.webp',alt:'Sysnergi home screen for a chili bed: soil moisture 28%, needs watering',
+      ic:'#i-bell',at:'Watering pump at 16:00',as:'Soil 28% · ideal 40–60%',bt:'Water tank 35%',bs:'Low · refill before tomorrow'},
+    livestock:{img:'img/v3-01c-beranda-kandang.webp',alt:'Sysnergi home screen for broiler barn B: 29.1 °C, all good',
+      ic:'#i-fan',at:'Fans follow temperature',as:'29.1 °C · ideal 28–30 °C',bt:'Barn B · Broilers',bs:'Flock age 21 days'},
+    home:{img:'img/v4-21a-beranda-rumah.webp',alt:'Sysnergi Home screen: 6 devices on, all secure',
+      ic:'#i-bulb',at:'6 devices on',as:'1.8 kWh used today',bt:'Front door locked',bs:'Yale · Bluetooth'}
+  };
+  var img=$('phoneImg');
   function setScene(k){
     var s=scenes[k]; if(!s) return;
     document.querySelectorAll('#seg button').forEach(function(b){b.setAttribute('aria-selected',String(b.dataset.k===k))});
@@ -793,50 +886,149 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   document.querySelectorAll('#seg button').forEach(function(b){b.addEventListener('click',function(){setScene(b.dataset.k)})});
   ['v3-01b-beranda-kebun','v3-01c-beranda-kandang','v4-21a-beranda-rumah'].forEach(function(n){var i=new Image();i.src='img/'+n+'.webp'});
 
-  // Harga: Usaha / Rumah
+  // Pricing: Business / Home
   document.querySelectorAll('#planSeg button').forEach(function(b){
     b.addEventListener('click',function(){
       var p=b.dataset.p;
       document.querySelectorAll('#planSeg button').forEach(function(x){x.setAttribute('aria-selected',String(x===b))});
-      $('plans-usaha').hidden=p!=='usaha';$('plans-rumah').hidden=p!=='rumah';
-      $('payNote').textContent=p==='rumah'?'Bayar lewat QRIS, GoPay, atau OVO. Batalkan kapan saja.':'Bayar lewat Google Play, batalkan kapan saja.';
+      $('plans-biz').hidden=p!=='biz';$('plans-home').hidden=p!=='home';
+      $('payNote').textContent=p==='home'?'Pay with QRIS, GoPay or OVO. Cancel anytime.':'Billed through Google Play, cancel anytime.';
     });
   });
 
-  // Grafik oksigen semalam (20.00 = 0 jam, 08.00 = 12 jam)
+  // Overnight oxygen chart (20:00 = hour 0, 08:00 = hour 12)
   var data=[[0,6.4],[1,6.1],[2,5.7],[3,5.3],[4,4.9],[5,4.6],[6,4.2],[6.17,4.0],[6.5,3.8],[7,3.7],[7.5,3.6],[8,3.7],[8.5,3.8],[9,4.0],[9.5,4.4],[9.67,4.6],[10,5.0],[11,5.6],[12,6.0]];
   var W=560,H=300,L=40,R=12,T=14,B=34,y0=3,y1=7;
   function x(h){return L+(h/12)*(W-L-R)}
   function y(v){return T+(1-(v-y0)/(y1-y0))*(H-T-B)}
-  var ns='http://www.w3.org/2000/svg',svg=document.getElementById('doChart');
-  function el(n,a){var e=document.createElementNS(ns,n);for(var k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e}
-  // aerator band 02.10 (6.17) – 05.40 (9.67)
+  var ns='http://www.w3.org/2000/svg',svg=$('doChart');
+  function el(n,a,parent){var e=document.createElementNS(ns,n);for(var k in a)e.setAttribute(k,a[k]);(parent||svg).appendChild(e);return e}
   el('rect',{x:x(6.17),y:T,width:x(9.67)-x(6.17),height:H-T-B,rx:10,fill:'var(--blue-2)','fill-opacity':'.16'});
-  var lbl=el('text',{x:(x(6.17)+x(9.67))/2,y:T+16,'text-anchor':'middle'});lbl.textContent='aerator menyala';lbl.style.fill='var(--blue)';
+  var lbl=el('text',{x:(x(6.17)+x(9.67))/2,y:T+16,'text-anchor':'middle'});lbl.textContent='aerator on';lbl.style.fill='var(--blue)';
   for(var v=3;v<=7;v++){
     el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:'var(--line)','stroke-width':1});
     var t=el('text',{x:L-10,y:y(v)+4,'text-anchor':'end'});t.textContent=v;
   }
-  ['20.00','22.00','00.00','02.00','04.00','06.00','08.00'].forEach(function(s,i){
+  ['20:00','22:00','00:00','02:00','04:00','06:00','08:00'].forEach(function(s,i){
     var t=el('text',{x:x(i*2),y:H-10,'text-anchor':i===0?'start':i===6?'end':'middle'});t.textContent=s;
   });
   el('line',{x1:L,x2:W-R,y1:y(4),y2:y(4),stroke:'var(--warn)','stroke-width':2,'stroke-dasharray':'6 6'});
-  // smooth line
   var d='M'+x(data[0][0])+' '+y(data[0][1]);
   for(var i=1;i<data.length;i++){var p=data[i-1],c=data[i],mx=(x(p[0])+x(c[0]))/2;d+=' C'+mx+' '+y(p[1])+' '+mx+' '+y(c[1])+' '+x(c[0])+' '+y(c[1])}
-  var area=d+' L'+x(12)+' '+(H-B)+' L'+x(0)+' '+(H-B)+' Z';
   var g=el('linearGradient',{id:'doFill',x1:0,y1:0,x2:0,y2:1});
-  var s1=document.createElementNS(ns,'stop');s1.setAttribute('offset','0');s1.setAttribute('stop-color','var(--blue)');s1.setAttribute('stop-opacity','.22');g.appendChild(s1);
-  var s2=document.createElementNS(ns,'stop');s2.setAttribute('offset','1');s2.setAttribute('stop-color','var(--blue)');s2.setAttribute('stop-opacity','0');g.appendChild(s2);
-  el('path',{d:area,fill:'url(#doFill)'});
+  el('stop',{offset:'0','stop-color':'var(--blue)','stop-opacity':'.22'},g);
+  el('stop',{offset:'1','stop-color':'var(--blue)','stop-opacity':'0'},g);
+  el('path',{d:d+' L'+x(12)+' '+(H-B)+' L'+x(0)+' '+(H-B)+' Z',fill:'url(#doFill)'});
   el('path',{d:d,fill:'none',stroke:'var(--blue)','stroke-width':3,'stroke-linecap':'round'});
-  // markers
   function mark(h,v,txt,anchor,dy){
     el('circle',{cx:x(h),cy:y(v),r:6,fill:'var(--surface)',stroke:'var(--blue)','stroke-width':3});
     var t=el('text',{x:x(h),y:y(v)+dy,'text-anchor':anchor});t.textContent=txt;t.style.fill='var(--ink)';
   }
-  mark(6.17,4.0,'02.10 · 4,0','end',-12);
-  mark(7.5,3.6,'terendah 3,6','middle',22);
-  mark(12,6.0,'6,0','end',-12);
+  mark(6.17,4.0,'02:10 · 4.0','end',-12);
+  mark(7.5,3.6,'low 3.6','middle',22);
+  mark(12,6.0,'6.0','end',-12);
+
+  // ── Waitlist ──
+  // Inside claude.ai the entry goes to this artifact's database (one row per signed-in viewer).
+  // Anywhere else (Firebase Hosting) it goes to Firestore `waitlist` via REST; see firestore.rules.
+  var FIRESTORE='https://firestore.googleapis.com/v1/projects/autonomous-pond-system/databases/(default)/documents/waitlist';
+  var inClaude=!!(window.claude&&window.claude.use);
+  var form=$('wlForm'),status=$('wlStatus'),btn=$('wlSubmit');
+  var siteLabels={pond:'Number of ponds',farm:'Number of fields',livestock:'Number of barns',home:'Number of homes'};
+  var doneMsgs={pond:'We will contact you when a Pond Kit is ready for your area.',farm:'We will contact you when farm sensors are ready for your area.',
+    livestock:'We will contact you when barn sensors are ready for your area.',home:'We will contact you when Sysnergi Home opens in your area.'};
+
+  form.addEventListener('change',function(e){
+    if(e.target.name==='segment') $('wl-sites-label').textContent=siteLabels[e.target.value];
+  });
+
+  function fieldError(id,msg){
+    var input=$(id),err=$(id+'-err');
+    input.setAttribute('aria-invalid',msg?'true':'false');
+    if(err) err.textContent=msg||'';
+    return !msg;
+  }
+  function read(){
+    var seg=form.querySelector('input[name="segment"]:checked');
+    var e={name:$('wl-name').value.trim(),contact:$('wl-contact').value.trim(),segment:seg?seg.value:'pond',
+      city:$('wl-city').value.trim(),lang:'en',source:'landing'};
+    var sites=$('wl-sites').value.trim();
+    if(sites!=='') e.sites=Number(sites);
+    if(!e.city) delete e.city;
+    return e;
+  }
+  function validate(e){
+    var ok=true;
+    ok=fieldError('wl-name',e.name?'':'Tell us what to call you.')&&ok;
+    var isEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.contact);
+    var isPhone=/^\+?[\d\s\-()]{8,20}$/.test(e.contact);
+    ok=fieldError('wl-contact',isEmail||isPhone?'':'Enter an email address or a WhatsApp number, like +62 812 3456 7890.')&&ok;
+    var s=e.sites;
+    ok=fieldError('wl-sites',s===undefined||(Number.isInteger(s)&&s>=1&&s<=1000)?'':'Use a whole number from 1 to 1000.')&&ok;
+    return ok;
+  }
+  function showDone(e){
+    form.hidden=true;$('wlDone').hidden=false;
+    $('wlDoneMsg').textContent=doneMsgs[e.segment]||doneMsgs.pond;
+  }
+
+  var dbRef=null;
+  function claudeRef(){
+    if(dbRef) return Promise.resolve(dbRef);
+    return Promise.all([window.claude.use('db'),window.claude.use('user')]).then(function(r){
+      var db=r[0],user=r[1];
+      if(!db||!user) return null;
+      return user.id().then(function(id){ if(!id) return null; dbRef=db.doc('waitlist/'+id); return dbRef; });
+    });
+  }
+  function toFirestore(e){
+    var f={};
+    Object.keys(e).forEach(function(k){
+      f[k]=typeof e[k]==='number'?{integerValue:String(e[k])}:{stringValue:e[k]};
+    });
+    return {fields:f};
+  }
+  function save(e){
+    if(inClaude){
+      return claudeRef().then(function(ref){
+        if(!ref) throw new Error('Sign in to claude.ai to join from this preview.');
+        var row=Object.assign({},e,{at:new Date().toISOString()});
+        return ref.set(row);
+      });
+    }
+    return fetch(FIRESTORE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(toFirestore(e))})
+      .then(function(r){ if(!r.ok) throw new Error('The waitlist did not accept this entry (error '+r.status+'). Check the fields and try again.'); });
+  }
+
+  form.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    status.hidden=true;
+    var e=read();
+    if(!validate(e)){ var bad=form.querySelector('[aria-invalid="true"]'); if(bad) bad.focus(); return; }
+    btn.disabled=true;btn.textContent='Saving…';
+    save(e).then(function(){ showDone(e); })
+      .catch(function(err){
+        status.textContent=(err&&err.message&&!/^[a-z_]+$/.test(err.message))?err.message:'Could not save right now. Check your connection and try again.';
+        status.hidden=false;
+      })
+      .then(function(){ btn.disabled=false;btn.textContent='Join the waitlist'; });
+  });
+  $('wlAgain').addEventListener('click',function(){ form.hidden=false;$('wlDone').hidden=true;$('wl-name').focus(); });
+
+  // Returning viewer inside claude.ai: show their saved entry
+  if(inClaude){
+    claudeRef().then(function(ref){
+      if(!ref) return;
+      return ref.get().then(function(snap){
+        if(!snap||!snap.exists) return;
+        var d=snap.data();
+        $('wl-name').value=d.name||'';$('wl-contact').value=d.contact||'';
+        if(d.sites) $('wl-sites').value=d.sites;
+        if(d.city) $('wl-city').value=d.city;
+        var r=form.querySelector('input[name="segment"][value="'+d.segment+'"]'); if(r){r.checked=true;$('wl-sites-label').textContent=siteLabels[d.segment];}
+        showDone(d);
+      });
+    }).catch(function(){});
+  }
 })();
 </script>

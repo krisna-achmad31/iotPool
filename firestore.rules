@@ -227,5 +227,23 @@ service cloud.firestore {
         allow delete: if false;
       }
     }
+
+    // ───────────── waitlist (landing page) ─────────────
+    // Ditulis tanpa login dari landing/ (Firestore REST). Hanya create, isi divalidasi ketat;
+    // tidak ada yang bisa membaca/mengubah dari klien. Baca lewat Console atau Admin SDK.
+    match /waitlist/{entryId} {
+      function str(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+      allow read, update, delete: if false;
+      allow create: if request.resource.data.keys().hasAll(['name', 'contact', 'segment'])
+        && request.resource.data.keys().hasOnly(['name', 'contact', 'segment', 'sites', 'city', 'lang', 'source'])
+        && str(request.resource.data.name, 1, 80)
+        && str(request.resource.data.contact, 5, 120)
+        && request.resource.data.segment in ['pond', 'farm', 'livestock', 'home']
+        && (!('sites' in request.resource.data) || (request.resource.data.sites is int
+              && request.resource.data.sites >= 1 && request.resource.data.sites <= 1000))
+        && (!('city' in request.resource.data) || str(request.resource.data.city, 0, 80))
+        && (!('lang' in request.resource.data) || request.resource.data.lang in ['en', 'id'])
+        && (!('source' in request.resource.data) || str(request.resource.data.source, 0, 40));
+    }
   }
 }
