@@ -1,0 +1,22 @@
+{
+  "name": "sysnergi-iot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "emulators": "npx -y firebase-tools@13 emulators:start --project demo-sysnergi --only auth,firestore,database",
+    "test": "vitest run tests --no-file-parallelism",
+    "test:rules": "npx -y firebase-tools@13 emulators:exec --project demo-sysnergi --only firestore,database \"vitest run tests --no-file-parallelism\"",
+    "typecheck": "tsc -p tsconfig.json",
+    "provision": "node tools/provision-hub.mjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "@types/node": "^26.6.4",
+    "firebase": "^11.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}

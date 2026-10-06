@@ -1,0 +1,12 @@
+node_modules/
+functions/lib/
+provisioned/
+firmware/**/secrets.h
+*.log
+.firebase/
+service-account*.json
+
+# Firebase client config (generate via flutterfire configure)
+app/android/app/google-services.json
+app/lib/firebase_options.dart
+app/ios/Runner/GoogleService-Info.plist

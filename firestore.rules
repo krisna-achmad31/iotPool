@@ -1,0 +1,231 @@
+rules_version = '2';
+
+// Model data: docs/data-model.md
+// Peran: owner (semua) · operator (kontrol alat, ubah zona/otomasi) · viewer (lihat).
+// Hub = akun Auth tersendiri; dikenali lewat hubs/{hubId}.authUid (diisi provisioning pabrik).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ───────────── helper ─────────────
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function docPath(p) { return path('/databases/' + database + '/documents/' + p); }
+
+    function siteData(siteId) { return get(/databases/$(database)/documents/sites/$(siteId)).data; }
+    function roleIn(siteId) { return siteData(siteId).roles.get(uid(), ''); }
+    function isMember(siteId) { return signedIn() && roleIn(siteId) in ['owner', 'operator', 'viewer']; }
+    function canOperate(siteId) { return signedIn() && roleIn(siteId) in ['owner', 'operator']; }
+    function isOwner(siteId) { return signedIn() && roleIn(siteId) == 'owner'; }
+
+    function hubData(hubId) { return get(/databases/$(database)/documents/hubs/$(hubId)).data; }
+    function isHub(hubId) { return signedIn() && hubData(hubId).authUid == uid(); }
+
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function onlyChanged(keys) { return changed().hasOnly(keys); }
+    function unchanged(key) { return !(key in changed()); }
+
+    function validRoles(d) {
+      return d.roles is map
+        && d.roles.values().hasOnly(['owner', 'operator', 'viewer'])
+        && d.memberUids is list
+        && d.memberUids.toSet() == d.roles.keys().toSet()
+        && d.memberUids.size() <= 20;
+    }
+
+    // ───────────── users ─────────────
+    match /users/{userId} {
+      function hubLimit() { return resource.data.get('plan', {}).get('hubLimit', 1); }
+
+      // ownedHubIds hanya boleh berubah satu hub per tulis, dan harus konsisten dengan hubs/{id}.ownerUid
+      // setelah batch selesai (getAfter). Mencegah user "membersihkan" kuota tanpa melepas hub.
+      function ownedHubsValid() {
+        let before = resource.data.get('ownedHubIds', []);
+        let after = request.resource.data.get('ownedHubIds', []);
+        let added = after.removeAll(before);
+        let removed = before.removeAll(after);
+        return unchanged('ownedHubIds') || (
+          after.size() == after.toSet().size()
+          && added.size() + removed.size() == 1
+          && (added.size() == 0 || (
+                getAfter(docPath('hubs/' + added[0])).data.ownerUid == userId
+                && after.size() <= hubLimit()))
+          && (removed.size() == 0 ||
+                getAfter(docPath('hubs/' + removed[0])).data.ownerUid != userId)
+        );
+      }
+
+      allow read: if signedIn() && uid() == userId;
+      allow create: if signedIn() && uid() == userId
+        && !request.resource.data.keys().hasAny(['plan', 'usage'])
+        && request.resource.data.ownedHubIds == [];
+      allow update: if signedIn() && uid() == userId
+        && unchanged('plan') && unchanged('usage') && unchanged('createdAt')
+        && ownedHubsValid();
+      allow delete: if false;
+
+      match /fcmTokens/{token} {
+        allow read, write: if signedIn() && uid() == userId;
+      }
+    }
+
+    // ───────────── sites ─────────────
+    match /sites/{siteId} {
+      // Query list wajib memakai where('memberUids', 'array-contains', uid).
+      allow read: if signedIn() && uid() in resource.data.memberUids;
+
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == uid()
+        && request.resource.data.roles.keys() == [uid()]
+        && request.resource.data.roles[uid()] == 'owner'
+        && request.resource.data.memberUids == [uid()]
+        && request.resource.data.hubIds == []
+        && request.resource.data.name is string;
+
+      // Owner: ubah apa saja kecuali ownerUid; hub baru di hubIds harus benar-benar diklaim ke site ini.
+      function ownerUpdate() {
+        let d = request.resource.data;
+        let added = d.hubIds.removeAll(resource.data.hubIds);
+        return isOwner(siteId)
+          && unchanged('ownerUid') && unchanged('createdAt')
+          && validRoles(d)
+          && d.roles[resource.data.ownerUid] == 'owner'
+          && d.hubIds.size() <= 50
+          && added.size() <= 1
+          && (added.size() == 0 || getAfter(docPath('hubs/' + added[0])).data.siteId == siteId);
+      }
+
+      // Anggota non-owner boleh keluar sendiri.
+      function selfLeave() {
+        let d = request.resource.data;
+        return isMember(siteId) && roleIn(siteId) != 'owner'
+          && onlyChanged(['roles', 'memberUids', 'updatedAt'])
+          && d.roles.diff(resource.data.roles).affectedKeys() == [uid()].toSet()
+          && !(uid() in d.roles)
+          && validRoles(d);
+      }
+
+      allow update: if ownerUpdate() || selfLeave();
+      allow delete: if signedIn() && resource.data.ownerUid == uid() && resource.data.hubIds.size() == 0;
+
+      match /zones/{zoneId} {
+        allow read: if isMember(siteId);
+        allow create, update: if canOperate(siteId)
+          && request.resource.data.name is string
+          && request.resource.data.kind is string;
+        allow delete: if canOperate(siteId);
+      }
+
+      match /automations/{ruleId} {
+        function validRule(d) {
+          return d.name is string && d.enabled is bool
+            && d.hubId in siteData(siteId).hubIds
+            && d.trigger.type in ['threshold', 'schedule']
+            && d.action.type in ['relay', 'notify']
+            && d.source in ['manual', 'template', 'ai'];
+        }
+        allow read: if isMember(siteId);
+        allow create: if canOperate(siteId) && validRule(request.resource.data)
+          && request.resource.data.createdBy == uid();
+        allow update: if canOperate(siteId) && validRule(request.resource.data)
+          && unchanged('createdBy') && unchanged('createdAt');
+        allow delete: if canOperate(siteId);
+      }
+
+      match /events/{eventId} {
+        function hubCreate() {
+          let d = request.resource.data;
+          let h = hubData(d.hubId);
+          return signedIn() && d.source == 'hub'
+            && h.authUid == uid() && h.siteId == siteId
+            && eventId.matches(d.hubId + '-[0-9]+');
+        }
+        function appCreate() {
+          let d = request.resource.data;
+          return isMember(siteId) && d.source == 'app' && d.by == uid()
+            && d.type in ['command', 'system'];
+        }
+        allow read: if isMember(siteId);
+        allow create: if (hubCreate() || appCreate())
+          && request.resource.data.ts is timestamp
+          && request.resource.data.severity in ['info', 'warning', 'danger'];
+        allow update: if false;
+        allow delete: if isOwner(siteId);
+      }
+    }
+
+    // ───────────── hubs ─────────────
+    match /hubs/{hubId} {
+      function isSelf() { return signedIn() && resource.data.authUid == uid(); }
+
+      allow read: if isSelf()
+        || (resource.data.siteId != null && isMember(resource.data.siteId));
+      allow create, delete: if false; // hanya provisioning (Admin SDK)
+
+      // A. Hub menulis status & token klaim miliknya sendiri.
+      function hubSelfUpdate() {
+        return isSelf() && onlyChanged(['claim', 'detected', 'fw', 'connectivity']);
+      }
+      // A2. Reset pabrik (tombol fisik di hub): hub melepas kepemilikannya sendiri.
+      function hubFactoryReset() {
+        let d = request.resource.data;
+        return isSelf() && onlyChanged(['ownerUid', 'siteId', 'claimNonce', 'claim'])
+          && d.ownerUid == null && d.siteId == null;
+      }
+      // B. Klaim: nonce dari BLE harus cocok, belum ada pemilik, dan batch yang sama
+      //    menambahkan hub ke sites.hubIds & users.ownedHubIds.
+      function claim() {
+        let d = request.resource.data;
+        return signedIn()
+          && resource.data.ownerUid == null
+          && onlyChanged(['ownerUid', 'siteId', 'claimNonce', 'claim', 'name'])
+          && d.ownerUid == uid()
+          && resource.data.claim != null
+          && d.claimNonce == resource.data.claim.nonce
+          && request.time < resource.data.claim.expiresAt
+          && d.claim == null
+          && getAfter(docPath('sites/' + d.siteId)).data.roles[uid()] == 'owner'
+          && hubId in getAfter(docPath('sites/' + d.siteId)).data.hubIds
+          && hubId in getAfter(docPath('users/' + uid())).data.ownedHubIds;
+      }
+      // C. Pengaturan port/relay oleh owner/operator site.
+      function configure() {
+        return resource.data.siteId != null && canOperate(resource.data.siteId)
+          && onlyChanged(['name', 'ports', 'relays', 'configVersion'])
+          && request.resource.data.get('configVersion', 0) >= resource.data.get('configVersion', 0);
+      }
+      // D. Lepas perangkat dari akun.
+      function unclaim() {
+        let d = request.resource.data;
+        return resource.data.siteId != null && isOwner(resource.data.siteId)
+          && onlyChanged(['ownerUid', 'siteId', 'claimNonce', 'name', 'ports', 'relays', 'configVersion'])
+          && d.ownerUid == null && d.siteId == null && d.get('claimNonce', null) == null;
+      }
+
+      allow update: if hubSelfUpdate() || hubFactoryReset() || claim() || configure() || unclaim();
+
+      // Telemetri. Query list wajib memakai where('siteId', '==', siteId).
+      function telemetryWrite(fields) {
+        let d = request.resource.data;
+        let h = hubData(hubId);
+        return signedIn() && h.authUid == uid()
+          && d.hubId == hubId && d.siteId == h.siteId
+          && d.keys().hasOnly(fields);
+      }
+
+      match /days/{day} {
+        allow read: if resource == null || isMember(resource.data.siteId);
+        allow create, update: if telemetryWrite(['hubId', 'siteId', 'date', 'tzOffsetMin', 's'])
+          && request.resource.data.s is map;
+        allow delete: if false;
+      }
+
+      match /months/{month} {
+        allow read: if resource == null || isMember(resource.data.siteId);
+        allow create, update: if telemetryWrite(['hubId', 'siteId', 'month', 'tzOffsetMin', 'h'])
+          && request.resource.data.h is map;
+        allow delete: if false;
+      }
+    }
+  }
+}

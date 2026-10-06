@@ -1,0 +1,986 @@
+<title>Blueprint Sysnergi Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: buku catatan teknik — satu kolom bacaan ±920px, navigasi bab lengket di atas,
+   diagram SVG selebar kolom dan bisa digeser sendiri di layar HP. */
+:root {
+  --bg: #F2F4F1;
+  --panel: #FFFFFF;
+  --zone: #E8EDEA;
+  --ink: #14211C;
+  --muted: #586862;
+  --line: #CDD6D1;
+  --line-strong: #8E9E97;
+  --accent: #0B7468;
+  --accent-soft: #DDEFEB;
+  --warn: #A55F00;
+  --warn-soft: #FBEEDC;
+  --danger: #B12F28;
+  --danger-soft: #F8E2E0;
+  --i2c: #2D5DB0;
+  --ana: #2C7F3A;
+  --dig: #A55F00;
+  --rly: #7445AC;
+  --pwr: #B12F28;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --sans: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1412; --panel: #161F1C; --zone: #1C2723; --ink: #E2EAE6; --muted: #95A69F;
+    --line: #2B3833; --line-strong: #5C6E67; --accent: #43C2B1; --accent-soft: #15332E;
+    --warn: #E9A740; --warn-soft: #33270F; --danger: #F07A72; --danger-soft: #3A1D1B;
+    --i2c: #82A8F2; --ana: #72CB80; --dig: #E9A740; --rly: #BC9AEC; --pwr: #F07A72;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1412; --panel: #161F1C; --zone: #1C2723; --ink: #E2EAE6; --muted: #95A69F;
+  --line: #2B3833; --line-strong: #5C6E67; --accent: #43C2B1; --accent-soft: #15332E;
+  --warn: #E9A740; --warn-soft: #33270F; --danger: #F07A72; --danger-soft: #3A1D1B;
+  --i2c: #82A8F2; --ana: #72CB80; --dig: #E9A740; --rly: #BC9AEC; --pwr: #F07A72;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.6; }
+.wrap { max-width: 960px; margin: 0 auto; padding-inline: 20px; padding-block: 0 80px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3.1rem); letter-spacing: -0.01em; }
+h2 { font-size: 1.75rem; margin-block: 0 14px; }
+h3 { font-size: 1.15rem; margin-block: 30px 10px; }
+p { margin-block: 0 14px; max-width: 68ch; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--zone); padding: 1px 5px; border-radius: 4px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+
+header.hero { padding-block: 44px 26px; display: grid; gap: 14px; }
+.hero p.lead { font-size: 1.15rem; color: var(--muted); margin: 0; }
+.specs { display: flex; flex-wrap: wrap; gap: 8px 22px; padding-block: 14px; border-block: 1px solid var(--line); font-size: 15px; }
+.specs div { display: flex; gap: 6px; align-items: baseline; }
+.specs b { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+nav.toc ul { list-style: none; margin: 0 auto; padding: 10px 20px; max-width: 960px; display: flex; gap: 6px 18px; overflow-x: auto; white-space: nowrap; font-size: 15px; }
+nav.toc a { text-decoration: none; color: var(--muted); font-weight: 600; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+section { padding-block: 46px 6px; border-bottom: 1px solid var(--line); scroll-margin-top: 50px; }
+section > .eyebrow { display: block; margin-bottom: 6px; }
+
+.note { border-left: 3px solid var(--line-strong); padding: 10px 14px; background: var(--zone); border-radius: 0 6px 6px 0; margin-block: 16px; font-size: 15.5px; max-width: 74ch; }
+.note p:last-child { margin: 0; }
+.note.warn { border-color: var(--warn); background: var(--warn-soft); }
+.note.danger { border-color: var(--danger); background: var(--danger-soft); }
+.note b:first-child { display: block; margin-bottom: 2px; }
+
+figure.fig { margin: 18px 0 26px; }
+.scroll { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.scroll svg { display: block; width: 100%; height: auto; min-width: 760px; }
+.scroll.narrow svg { min-width: 0; max-width: 300px; margin: 0 auto; }
+figcaption { font-size: 14.5px; color: var(--muted); margin-top: 8px; max-width: 78ch; }
+
+.dg { color: var(--ink); font-family: var(--sans); }
+.dg text { fill: currentColor; font-size: 13px; }
+.dg .b { font-weight: 700; }
+.dg .sub { fill: var(--muted); font-size: 11.5px; }
+.dg .sm { font-size: 11px; }
+.dg .mono { font-family: var(--mono); font-size: 11.5px; }
+.dg .box { fill: var(--panel); stroke: var(--line-strong); stroke-width: 1.2; }
+.dg .zone { fill: var(--zone); stroke: var(--line); }
+.dg .azone { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.2; }
+.dg .abox { fill: var(--panel); stroke: var(--accent); stroke-width: 1.8; }
+.dg .w { fill: none; stroke: currentColor; stroke-width: 1.4; }
+.dg .w.acc { stroke: var(--accent); stroke-width: 1.8; }
+.dg .dash { stroke-dasharray: 5 4; }
+.dg .ta { fill: var(--accent); }
+.dg .dot { fill: currentColor; }
+.dg .c-i2c { stroke: var(--i2c); } .dg .f-i2c { fill: var(--i2c); }
+.dg .c-ana { stroke: var(--ana); } .dg .f-ana { fill: var(--ana); }
+.dg .c-dig { stroke: var(--dig); } .dg .f-dig { fill: var(--dig); }
+.dg .c-rly { stroke: var(--rly); } .dg .f-rly { fill: var(--rly); }
+.dg .c-pwr { stroke: var(--pwr); } .dg .f-pwr { fill: var(--pwr); }
+.dg .c-acc { stroke: var(--accent); } .dg .f-acc { fill: var(--accent); }
+.dg .hv { stroke: var(--danger); stroke-width: 2; }
+
+.tbl { overflow-x: auto; margin-block: 12px 22px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 700; background: var(--zone); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.total td { font-weight: 700; background: var(--zone); }
+td .mono { white-space: nowrap; }
+.group td { background: var(--accent-soft); font-weight: 700; color: var(--accent); font-size: 13.5px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 720px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+
+ol.steps { padding-left: 1.3em; display: grid; gap: 8px; max-width: 74ch; }
+ol.steps li::marker { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+ul.plain { padding-left: 1.2em; max-width: 74ch; }
+
+pre { background: var(--zone); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.55; margin-block: 10px 20px; }
+.tree { white-space: pre; }
+.chip { display: inline-block; font-family: var(--mono); font-size: 12px; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
+.led { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<nav class="toc" aria-label="Bab">
+  <ul>
+    <li><a href="#sistem">Alur sistem</a></li>
+    <li><a href="#firmware-alur">Alur firmware</a></li>
+    <li><a href="#pasang">Alur pemasangan</a></li>
+    <li><a href="#blueprint">Blueprint modular</a></li>
+    <li><a href="#wiring">Wiring</a></li>
+    <li><a href="#program">Program</a></li>
+    <li><a href="#alat">Alat &amp; bahan</a></li>
+  </ul>
+</nav>
+
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Blueprint perangkat keras · rev 1.0 · Oktober 2026</span>
+  <h1>Sysnergi Hub</h1>
+  <p class="lead">Hub IoT berbasis ESP32 untuk kolam, kebun, dan kandang. Satu hub punya enam port sensor yang dikenali otomatis, empat relay, dan bus RS485. Aturan otomasi berjalan di dalam hub, jadi tetap aktif saat internet putus.</p>
+  <div class="specs">
+    <div>MCU <b>ESP32-WROOM-32</b></div>
+    <div>Port sensor <b>6× GX16-8</b></div>
+    <div>Output <b>4 relay</b></div>
+    <div>Bus industri <b>RS485 Modbus</b></div>
+    <div>Koneksi <b>Wi-Fi + BLE</b></div>
+    <div>Cloud <b>MQTT</b></div>
+  </div>
+  <div class="note">
+    <b>Dasar dokumen ini</b>
+    <p>Kebutuhan diambil dari desain aplikasi di <code>iot.pen</code> (layar Beranda, Detail Perangkat, Tambah Perangkat 10a–10d, Gagal 13a/13b, Otomasi AI, Notifikasi). Angka-angka seperti "5 dari 6 port", "2 dari 4 relay", "tahan tombol 5 detik", dan "tetap jalan walau internet putus" dijadikan spesifikasi. "ESP32 V3" diasumsikan board DevKit ESP32-WROOM-32 flash 4 MB. Semua GPIO yang dipakai juga tersedia di versi 30 pin.</p>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<section id="sistem">
+  <span class="eyebrow">01 · Alur sistem</span>
+  <h2>Dari sensor sampai aplikasi</h2>
+  <p>Hub dibagi menjadi dua jalur yang berjalan di dua core ESP32. Core 1 menjalankan loop kontrol: baca sensor, evaluasi aturan, lalu gerakkan relay. Core 0 mengurus semua urusan jaringan. Keduanya hanya bertukar data lewat antrean, sehingga Wi-Fi yang lambat atau putus tidak pernah menahan aerator.</p>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 430" role="img" aria-label="Arsitektur: sensor masuk ke core kontrol hub yang menggerakkan relay secara lokal, sementara core jaringan mengirim data lewat MQTT ke server dan aplikasi">
+        <defs>
+          <marker id="a-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--ink)"/></marker>
+          <marker id="a-ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent)"/></marker>
+        </defs>
+        <!-- lapangan -->
+        <rect class="box" x="20" y="90" width="180" height="48" rx="6"/>
+        <text class="b" x="110" y="110" text-anchor="middle">Modul Smart Port ×6</text>
+        <text class="sub" x="110" y="127" text-anchor="middle">analog · 1-Wire · I2C · UART</text>
+        <rect class="box" x="20" y="160" width="180" height="48" rx="6"/>
+        <text class="b" x="110" y="180" text-anchor="middle">Sensor RS485 ×8</text>
+        <text class="sub" x="110" y="197" text-anchor="middle">Modbus RTU, kabel panjang</text>
+        <rect class="box" x="20" y="306" width="180" height="48" rx="6"/>
+        <text class="b" x="110" y="326" text-anchor="middle">Aktuator 220 V</text>
+        <text class="sub" x="110" y="343" text-anchor="middle">aerator · pompa · kipas</text>
+        <text class="sub" x="110" y="372" text-anchor="middle">lewat kontaktor</text>
+
+        <!-- hub -->
+        <rect class="zone" x="236" y="34" width="420" height="372" rx="10"/>
+        <text class="b sm" x="252" y="56" style="letter-spacing:.08em">SYSNERGI HUB · ESP32</text>
+        <rect class="azone" x="252" y="70" width="180" height="322" rx="8"/>
+        <text class="b sm ta" x="264" y="90">CORE 1 · KONTROL</text>
+        <rect class="abox" x="262" y="104" width="160" height="48" rx="6"/>
+        <text class="b" x="342" y="124" text-anchor="middle">Driver sensor</text>
+        <text class="sub" x="342" y="141" text-anchor="middle">satu kelas per jenis</text>
+        <rect class="abox" x="262" y="174" width="160" height="48" rx="6"/>
+        <text class="b" x="342" y="194" text-anchor="middle">Tabel kanal</text>
+        <text class="sub mono" x="342" y="211" text-anchor="middle">p2.do = 4,1</text>
+        <rect class="abox" x="262" y="244" width="160" height="48" rx="6"/>
+        <text class="b" x="342" y="264" text-anchor="middle">Mesin aturan</text>
+        <text class="sub" x="342" y="281" text-anchor="middle">di hub, tiap 1 detik</text>
+        <rect class="abox" x="262" y="314" width="160" height="48" rx="6"/>
+        <text class="b" x="342" y="334" text-anchor="middle">Relay + pengaman</text>
+        <text class="sub" x="342" y="351" text-anchor="middle">batas nyala, jeda motor</text>
+        <path class="w acc" d="M342,152 V172" marker-end="url(#a-ac)"/>
+        <path class="w acc" d="M342,222 V242" marker-end="url(#a-ac)"/>
+        <path class="w acc" d="M342,292 V312" marker-end="url(#a-ac)"/>
+        <text class="sm ta b" x="342" y="382" text-anchor="middle">jalan tanpa internet</text>
+
+        <rect class="zone" x="480" y="70" width="164" height="322" rx="8" style="fill: var(--panel)"/>
+        <text class="b sm" x="492" y="90">CORE 0 · JARINGAN</text>
+        <rect class="box" x="490" y="104" width="144" height="48" rx="6"/>
+        <text class="b" x="562" y="124" text-anchor="middle">Provisioning</text>
+        <text class="sub" x="562" y="141" text-anchor="middle">Bluetooth / hotspot</text>
+        <rect class="box" x="490" y="174" width="144" height="118" rx="6"/>
+        <text class="b" x="562" y="198" text-anchor="middle">Wi-Fi + MQTT</text>
+        <text class="sub" x="562" y="222" text-anchor="middle">kirim telemetri</text>
+        <text class="sub" x="562" y="238" text-anchor="middle">&amp; peringatan</text>
+        <text class="sub" x="562" y="262" text-anchor="middle">terima perintah</text>
+        <text class="sub" x="562" y="278" text-anchor="middle">&amp; aturan baru</text>
+        <rect class="box" x="490" y="314" width="144" height="48" rx="6"/>
+        <text class="b" x="562" y="334" text-anchor="middle">Buffer &amp; OTA</text>
+        <text class="sub" x="562" y="351" text-anchor="middle">simpan saat offline</text>
+
+        <path class="w" d="M422,198 H488" marker-end="url(#a-ar)"/>
+        <text class="sm" x="455" y="191" text-anchor="middle">data</text>
+        <path class="w" d="M490,268 H424" marker-end="url(#a-ar)"/>
+        <text class="sm" x="455" y="261" text-anchor="middle">perintah</text>
+
+        <path class="w" d="M200,114 H260" marker-end="url(#a-ar)"/>
+        <text class="sm" x="228" y="107" text-anchor="middle">baca</text>
+        <path class="w" d="M200,184 H244 V138 H260" marker-end="url(#a-ar)"/>
+        <path class="w" d="M262,338 H202" marker-end="url(#a-ar)"/>
+        <text class="sm" x="230" y="331" text-anchor="middle">nyala</text>
+
+        <!-- cloud -->
+        <rect class="box" x="704" y="150" width="140" height="48" rx="6"/>
+        <text class="b" x="774" y="170" text-anchor="middle">Broker MQTT</text>
+        <text class="sub" x="774" y="187" text-anchor="middle">TLS · port 8883</text>
+        <rect class="box" x="704" y="262" width="140" height="56" rx="6"/>
+        <text class="b" x="774" y="284" text-anchor="middle">Server</text>
+        <text class="sub" x="774" y="302" text-anchor="middle">data · AI · notifikasi</text>
+        <rect class="box" x="872" y="150" width="112" height="168" rx="14"/>
+        <text class="b" x="928" y="226" text-anchor="middle">Aplikasi</text>
+        <text class="sub" x="928" y="243" text-anchor="middle">Sysnergi (HP)</text>
+        <path class="w" d="M634,206 H670 V174 H702" marker-end="url(#a-ar)"/>
+        <text class="sm" x="672" y="166" text-anchor="middle">MQTT</text>
+        <path class="w" d="M774,200 V260" marker-start="url(#a-ar)" marker-end="url(#a-ar)"/>
+        <text class="sm" x="782" y="234">pub/sub</text>
+        <path class="w" d="M846,290 H870" marker-start="url(#a-ar)" marker-end="url(#a-ar)"/>
+        <text class="sm" x="858" y="282" text-anchor="middle">API</text>
+        <path class="w dash" d="M928,148 V20 H562 V102" marker-end="url(#a-ar)"/>
+        <text class="sm" x="745" y="14" text-anchor="middle">Bluetooth: kirim sandi Wi-Fi saat pemasangan (sekali)</text>
+      </svg>
+    </div>
+    <figcaption>Jalur berwarna hijau-toska adalah loop kontrol lokal. Jika kotak di kanan (broker, server, aplikasi) hilang, aerator tetap menyala saat oksigen turun. Data yang tidak terkirim disimpan di flash dan dikirim saat koneksi kembali.</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================ -->
+<section id="firmware-alur">
+  <span class="eyebrow">02 · Alur firmware</span>
+  <h2>Urutan menyala dan ritme loop</h2>
+  <p>Hal pertama yang dikerjakan hub saat menyala adalah mematikan semua relay. Setelah itu aturan dan jam dimuat dari memori, dan loop kontrol langsung berjalan. Hub tidak perlu menunggu Wi-Fi sebelum mulai mengontrol.</p>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 220" role="img" aria-label="Alur boot: nyala, relay off, muat aturan dan jam, scan port, lalu loop kontrol mulai sementara hub mencari Wi-Fi atau masuk provisioning">
+        <defs>
+          <marker id="b-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--ink)"/></marker>
+          <marker id="b-ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent)"/></marker>
+        </defs>
+        <rect class="box" x="10" y="40" width="130" height="48" rx="6"/>
+        <text class="b" x="75" y="69" text-anchor="middle">Nyala / restart</text>
+        <rect class="box" x="165" y="40" width="130" height="48" rx="6"/>
+        <text class="b" x="230" y="60" text-anchor="middle">Semua relay OFF</text>
+        <text class="sub" x="230" y="77" text-anchor="middle">sebelum apa pun</text>
+        <rect class="box" x="320" y="40" width="140" height="48" rx="6"/>
+        <text class="b" x="390" y="60" text-anchor="middle">Muat aturan &amp; jam</text>
+        <text class="sub" x="390" y="77" text-anchor="middle">flash + RTC DS3231</text>
+        <rect class="box" x="485" y="40" width="130" height="48" rx="6"/>
+        <text class="b" x="550" y="60" text-anchor="middle">Scan 6 port</text>
+        <text class="sub" x="550" y="77" text-anchor="middle">kenali modul</text>
+        <polygon class="box" points="705,30 767,64 705,98 643,64"/>
+        <text class="b sm" x="705" y="61" text-anchor="middle">Wi-Fi</text>
+        <text class="b sm" x="705" y="75" text-anchor="middle">tersimpan?</text>
+        <rect class="box" x="810" y="40" width="180" height="48" rx="6"/>
+        <text class="b" x="900" y="60" text-anchor="middle">Wi-Fi → NTP → MQTT</text>
+        <text class="sub" x="900" y="77" text-anchor="middle">LED hijau</text>
+        <rect class="box" x="615" y="150" width="180" height="48" rx="6"/>
+        <text class="b" x="705" y="170" text-anchor="middle">Provisioning</text>
+        <text class="sub" x="705" y="187" text-anchor="middle">LED biru berkedip</text>
+        <rect class="abox" x="330" y="150" width="250" height="48" rx="6"/>
+        <text class="b ta" x="455" y="170" text-anchor="middle">Loop kontrol mulai (core 1)</text>
+        <text class="sub" x="455" y="187" text-anchor="middle">tidak menunggu internet</text>
+
+        <path class="w" d="M140,64 H163" marker-end="url(#b-ar)"/>
+        <path class="w" d="M295,64 H318" marker-end="url(#b-ar)"/>
+        <path class="w" d="M460,64 H483" marker-end="url(#b-ar)"/>
+        <path class="w" d="M615,64 H641" marker-end="url(#b-ar)"/>
+        <path class="w" d="M767,64 H808" marker-end="url(#b-ar)"/>
+        <text class="sm" x="788" y="57" text-anchor="middle">ya</text>
+        <path class="w" d="M705,98 V148" marker-end="url(#b-ar)"/>
+        <text class="sm" x="712" y="128">tidak</text>
+        <path class="w" d="M795,174 H900 V90" marker-end="url(#b-ar)"/>
+        <text class="sm" x="908" y="140">Wi-Fi diterima</text>
+        <path class="w acc" d="M550,88 V148" marker-end="url(#b-ac)"/>
+      </svg>
+    </div>
+    <figcaption>Cabang "tidak" hanya terjadi pada pemasangan pertama atau setelah tombol ditahan. Selama provisioning, loop kontrol tetap berjalan dengan aturan yang tersimpan.</figcaption>
+  </figure>
+
+  <h3>Ritme loop kontrol (core 1)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Setiap</th><th>Pekerjaan</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">50 ms</td><td>Baca tombol, perbarui LED, cek batas aman relay, proses perintah masuk (MQTT atau Serial)</td></tr>
+      <tr><td class="mono">1 detik</td><td>Evaluasi semua aturan, nyalakan atau matikan relay</td></tr>
+      <tr><td class="mono">5 detik</td><td>Baca semua modul di 6 port dan semua sensor RS485</td></tr>
+      <tr><td class="mono">10 detik</td><td>Scan ulang port untuk mendeteksi modul yang dicolok atau dicabut</td></tr>
+      <tr><td class="mono">30 detik</td><td>Kirim telemetri. Saat offline, 1 dari 10 data disimpan ke flash (cukup untuk ±12 jam)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Watchdog me-restart hub jika loop kontrol macet lebih dari 5 detik. Unduhan OTA dan koneksi MQTT berjalan di core 0, jadi proses yang lama di sana tidak memicu watchdog.</p>
+
+  <h3>Bahasa LED dan tombol</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>LED</th><th>Arti</th></tr></thead>
+    <tbody>
+      <tr><td><span class="led" style="background:#2563EB"></span>Biru berkedip cepat</td><td>Siap disambungkan (provisioning). Ini yang dimaksud layar 10c dan 13a.</td></tr>
+      <tr><td><span class="led" style="background:#2563EB;opacity:.5"></span>Biru kedip pelan</td><td>Sedang menyambung ke Wi-Fi</td></tr>
+      <tr><td><span class="led" style="background:#D19A1E"></span>Kuning</td><td>Wi-Fi ada tapi cloud tidak terjangkau. Aturan tetap jalan.</td></tr>
+      <tr><td><span class="led" style="background:#1E9E5A"></span>Hijau</td><td>Online ke cloud</td></tr>
+      <tr><td><span class="led" style="background:#D33A2F"></span>Merah berkedip</td><td>Ada aturan peringatan yang aktif (mis. oksigen di bawah batas)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Tombol: tekan singkat untuk identifikasi (LED putih berkedip, aplikasi menerima event). Tahan <b>5 detik</b> untuk sambung ulang lewat Bluetooth, <b>10 detik</b> untuk mode hotspot hub, <b>20 detik</b> untuk reset pabrik. Warna LED berubah saat ambang tercapai, jadi pengguna tahu kapan harus melepas.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="pasang">
+  <span class="eyebrow">03 · Alur pemasangan</span>
+  <h2>Hub baru sampai muncul di aplikasi</h2>
+  <p>Provisioning memakai protokol Espressif Unified Provisioning dengan Security 1. Kunci sesinya diturunkan dari kode POP yang tercetak di stiker QR hub. Sandi Wi-Fi tidak pernah dikirim dalam bentuk teks biasa, sesuai janji di layar 10d.</p>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 480" role="img" aria-label="Diagram urutan pemasangan antara aplikasi, hub, dan cloud dengan nomor layar aplikasi">
+        <defs>
+          <marker id="c-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--ink)"/></marker>
+        </defs>
+        <rect class="box" x="55" y="10" width="150" height="36" rx="6"/>
+        <text class="b" x="130" y="33" text-anchor="middle">Aplikasi (HP)</text>
+        <rect class="abox" x="395" y="10" width="150" height="36" rx="6"/>
+        <text class="b" x="470" y="33" text-anchor="middle">Hub</text>
+        <rect class="box" x="705" y="10" width="150" height="36" rx="6"/>
+        <text class="b" x="780" y="33" text-anchor="middle">Cloud</text>
+        <text class="b sm" x="985" y="33" text-anchor="end" style="letter-spacing:.06em">LAYAR</text>
+        <path class="w dash" d="M130,46 V470" style="stroke: var(--line-strong)"/>
+        <path class="w dash" d="M470,46 V470" style="stroke: var(--line-strong)"/>
+        <path class="w dash" d="M780,46 V470" style="stroke: var(--line-strong)"/>
+
+        <rect class="zone" x="62" y="64" width="136" height="38" rx="5"/>
+        <text class="sm" x="130" y="80" text-anchor="middle">pilih "Hub",</text>
+        <text class="sm" x="130" y="95" text-anchor="middle">cara: Bluetooth</text>
+        <text class="mono sub" x="985" y="88" text-anchor="end">10a · 10b</text>
+
+        <path class="w" d="M470,132 H132" marker-end="url(#c-ar)"/>
+        <text class="sm" x="300" y="125" text-anchor="middle">iklan BLE "SYN-0A41" · LED biru</text>
+        <text class="mono sub" x="985" y="136" text-anchor="end">10c</text>
+
+        <path class="w" d="M130,176 H468" marker-end="url(#c-ar)"/>
+        <text class="sm" x="300" y="169" text-anchor="middle">buka sesi aman (POP dari stiker QR)</text>
+
+        <path class="w" d="M130,220 H468" marker-end="url(#c-ar)"/>
+        <text class="sm" x="300" y="213" text-anchor="middle">nama + sandi Wi-Fi (terenkripsi)</text>
+        <text class="mono sub" x="985" y="224" text-anchor="end">10d</text>
+
+        <rect class="zone" x="402" y="242" width="136" height="38" rx="5"/>
+        <text class="sm" x="470" y="258" text-anchor="middle">coba masuk</text>
+        <text class="sm" x="470" y="273" text-anchor="middle">Wi-Fi rumah</text>
+
+        <path class="w" d="M470,310 H132" marker-end="url(#c-ar)"/>
+        <text class="sm" x="300" y="303" text-anchor="middle">status: tersambung / sandi salah</text>
+        <text class="mono sub" x="985" y="314" text-anchor="end">13b jika gagal</text>
+
+        <path class="w" d="M470,354 H778" marker-end="url(#c-ar)"/>
+        <text class="sm" x="625" y="347" text-anchor="middle">MQTT connect + state (modul terdeteksi)</text>
+
+        <path class="w" d="M130,398 H778" marker-end="url(#c-ar)"/>
+        <text class="sm" x="625" y="391" text-anchor="middle">klaim hub ke akun (HWID)</text>
+
+        <path class="w" d="M780,442 H132" marker-end="url(#c-ar)"/>
+        <text class="sm" x="625" y="435" text-anchor="middle">"5 modul terdeteksi otomatis"</text>
+        <text class="mono sub" x="985" y="446" text-anchor="end">09 · 06</text>
+      </svg>
+    </div>
+    <figcaption>Jika iklan Bluetooth tidak ditemukan, aplikasi menampilkan layar 13a. Pengguna menahan tombol 5 detik, atau 10 detik untuk memakai hotspot hub. Jika sandi salah, hub tetap menunggu di Bluetooth sehingga pengguna bisa mengetik ulang tanpa mengulang dari awal.</figcaption>
+  </figure>
+  <div class="note warn">
+    <b>Yang perlu dibuat di sisi aplikasi</b>
+    <p>Pakai library resmi <code>esp-idf-provisioning-android</code> dan <code>esp-idf-provisioning-ios</code>. Keduanya sudah menangani pemindaian BLE, Security 1, dan pengiriman kredensial. Nama perangkat BLE = HWID (<code>SYN-xxxx</code>). POP dicetak di stiker QR bersama HWID. Di firmware prototipe, POP diturunkan dari MAC. Untuk produksi, POP harus dibuat acak per unit dan disimpan di NVS saat produksi.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="blueprint">
+  <span class="eyebrow">04 · Blueprint modular</span>
+  <h2>Kenapa sensor apa pun bisa dipasang</h2>
+  <p>Kuncinya ada di lima lapis yang saling tidak tahu detail lapis lain. Aturan, grafik, dan notifikasi hanya mengenal <b>nama kanal</b> seperti <code>p2.do</code> atau <code>rs1.nh3</code>. Mereka tidak tahu sensornya analog, I2C, atau Modbus. Karena itu, mengganti atau menambah sensor tidak mengubah apa pun di atas lapis driver.</p>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 290" role="img" aria-label="Dua jalur sensor, Smart Port dan RS485, melewati lapis konektor, identitas, dan driver lalu bertemu di lapis kanal yang dipakai aturan">
+        <defs>
+          <marker id="d-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--ink)"/></marker>
+        </defs>
+        <text class="b sm" x="100" y="22" text-anchor="middle" style="letter-spacing:.06em">1 · KONEKTOR</text>
+        <text class="b sm" x="300" y="22" text-anchor="middle" style="letter-spacing:.06em">2 · IDENTITAS</text>
+        <text class="b sm" x="500" y="22" text-anchor="middle" style="letter-spacing:.06em">3 · DRIVER</text>
+        <text class="b sm ta" x="700" y="22" text-anchor="middle" style="letter-spacing:.06em">4 · KANAL</text>
+        <text class="b sm" x="900" y="22" text-anchor="middle" style="letter-spacing:.06em">5 · ATURAN &amp; APP</text>
+
+        <rect class="box" x="10" y="40" width="180" height="90" rx="6"/>
+        <text class="b" x="100" y="68" text-anchor="middle">Smart Port P2</text>
+        <text class="sub" x="100" y="88" text-anchor="middle">GX16-8: daya, I2C,</text>
+        <text class="sub" x="100" y="104" text-anchor="middle">jalur A, jalur D</text>
+        <rect class="box" x="210" y="40" width="180" height="90" rx="6"/>
+        <text class="b" x="300" y="68" text-anchor="middle">EEPROM di modul</text>
+        <text class="sub mono" x="300" y="88" text-anchor="middle">0x50 · jenis 0x0202</text>
+        <text class="sub" x="300" y="104" text-anchor="middle">kalibrasi ikut modul</text>
+        <rect class="box" x="410" y="40" width="180" height="90" rx="6"/>
+        <text class="b" x="500" y="68" text-anchor="middle">Driver DO analog</text>
+        <text class="sub" x="500" y="88" text-anchor="middle">mV → mg/L</text>
+        <text class="sub" x="500" y="104" text-anchor="middle">+ kompensasi suhu</text>
+        <rect class="abox" x="610" y="40" width="180" height="90" rx="6"/>
+        <text class="b mono ta" x="700" y="82" text-anchor="middle" style="font-size:14px">p2.do = 4,1</text>
+        <text class="sub" x="700" y="102" text-anchor="middle">mg/L</text>
+
+        <rect class="box" x="10" y="166" width="180" height="90" rx="6"/>
+        <text class="b" x="100" y="194" text-anchor="middle">Bus RS485 A/B</text>
+        <text class="sub" x="100" y="214" text-anchor="middle">sensor industri,</text>
+        <text class="sub" x="100" y="230" text-anchor="middle">diparalel</text>
+        <rect class="box" x="210" y="166" width="180" height="90" rx="6"/>
+        <text class="b" x="300" y="194" text-anchor="middle">Profil JSON dari app</text>
+        <text class="sub" x="300" y="214" text-anchor="middle">alamat, register,</text>
+        <text class="sub" x="300" y="230" text-anchor="middle">format, skala</text>
+        <rect class="box" x="410" y="166" width="180" height="90" rx="6"/>
+        <text class="b" x="500" y="194" text-anchor="middle">Driver Modbus</text>
+        <text class="sub" x="500" y="214" text-anchor="middle">generik, tanpa</text>
+        <text class="sub" x="500" y="230" text-anchor="middle">ubah firmware</text>
+        <rect class="abox" x="610" y="166" width="180" height="90" rx="6"/>
+        <text class="b mono ta" x="700" y="208" text-anchor="middle" style="font-size:14px">rs1.nh3 = 0,02</text>
+        <text class="sub" x="700" y="228" text-anchor="middle">ppm</text>
+
+        <rect class="box" x="810" y="40" width="180" height="216" rx="6"/>
+        <text class="b" x="900" y="68" text-anchor="middle">Aturan, grafik,</text>
+        <text class="b" x="900" y="86" text-anchor="middle">notifikasi</text>
+        <text class="sub" x="900" y="110" text-anchor="middle">hanya kenal nama kanal</text>
+        <text class="mono" x="900" y="160" text-anchor="middle">p2.do &lt; 4 → R1</text>
+        <text class="mono" x="900" y="196" text-anchor="middle">rs1.nh3 &gt; 0,1</text>
+        <text class="mono" x="900" y="214" text-anchor="middle">→ kabari</text>
+
+        <path class="w" d="M190,85 H208" marker-end="url(#d-ar)"/>
+        <path class="w" d="M390,85 H408" marker-end="url(#d-ar)"/>
+        <path class="w" d="M590,85 H608" marker-end="url(#d-ar)"/>
+        <path class="w" d="M790,85 H808" marker-end="url(#d-ar)"/>
+        <path class="w" d="M190,211 H208" marker-end="url(#d-ar)"/>
+        <path class="w" d="M390,211 H408" marker-end="url(#d-ar)"/>
+        <path class="w" d="M590,211 H608" marker-end="url(#d-ar)"/>
+        <path class="w" d="M790,211 H808" marker-end="url(#d-ar)"/>
+        <text class="sub" x="500" y="280" text-anchor="middle">Sensor baru menambah satu kotak di kolom 3, atau cukup satu profil JSON di kolom 2. Kolom 4 dan 5 tidak berubah.</text>
+      </svg>
+    </div>
+    <figcaption>Dua jalan masuk sensor bertemu di tabel kanal. Mesin aturan memperlakukan <code>p2.do</code> dan <code>rs1.nh3</code> dengan cara yang sama.</figcaption>
+  </figure>
+
+  <h3>Lapis 1: Smart Port, satu konektor untuk semua antarmuka</h3>
+  <div class="grid2">
+    <figure class="fig" style="margin:0">
+      <div class="scroll narrow">
+        <svg class="dg" viewBox="0 0 260 260" role="img" aria-label="Tampak depan soket GX16-8 dengan delapan pin bernomor">
+          <circle cx="130" cy="130" r="112" style="fill: var(--zone); stroke: var(--line-strong); stroke-width: 1.5"/>
+          <circle cx="130" cy="130" r="96" style="fill: var(--panel); stroke: var(--line-strong)"/>
+          <rect x="122" y="30" width="16" height="12" rx="2" style="fill: var(--line-strong)"/>
+          <g>
+            <circle cx="159" cy="68" r="15" style="fill: var(--panel); stroke: var(--pwr); stroke-width: 2.5"/><text class="b" x="159" y="73" text-anchor="middle">1</text>
+            <circle cx="196" cy="114" r="15" style="fill: var(--panel); stroke: var(--pwr); stroke-width: 2.5"/><text class="b" x="196" y="119" text-anchor="middle">2</text>
+            <circle cx="184" cy="172" r="15" style="fill: var(--panel); stroke: var(--pwr); stroke-width: 2.5"/><text class="b" x="184" y="177" text-anchor="middle">3</text>
+            <circle cx="131" cy="198" r="15" style="fill: var(--panel); stroke: var(--ink); stroke-width: 2.5"/><text class="b" x="131" y="203" text-anchor="middle">4</text>
+            <circle cx="77" cy="173" r="15" style="fill: var(--panel); stroke: var(--i2c); stroke-width: 2.5"/><text class="b" x="77" y="178" text-anchor="middle">5</text>
+            <circle cx="64" cy="116" r="15" style="fill: var(--panel); stroke: var(--i2c); stroke-width: 2.5"/><text class="b" x="64" y="121" text-anchor="middle">6</text>
+            <circle cx="100" cy="69" r="15" style="fill: var(--panel); stroke: var(--ana); stroke-width: 2.5"/><text class="b" x="100" y="74" text-anchor="middle">7</text>
+            <circle cx="130" cy="130" r="15" style="fill: var(--panel); stroke: var(--dig); stroke-width: 2.5"/><text class="b" x="130" y="135" text-anchor="middle">8</text>
+          </g>
+          <text class="sub" x="130" y="252" text-anchor="middle">tampak depan soket di casing</text>
+        </svg>
+      </div>
+    </figure>
+    <div class="tbl" style="margin:0"><table>
+      <thead><tr><th>Pin</th><th>Sinyal</th><th>Untuk</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td>+12 V (PTC 0,5 A)</td><td>sensor 12 V, loop 4–20 mA</td></tr>
+        <tr><td class="mono">2</td><td>+5 V (PTC 0,5 A)</td><td>MQ-137, ultrasonik, papan pH</td></tr>
+        <tr><td class="mono">3</td><td>+3,3 V port</td><td>sensor I2C, EEPROM ID</td></tr>
+        <tr><td class="mono">4</td><td>GND</td><td>ground bersama</td></tr>
+        <tr><td class="mono">5</td><td>SDA kanal mux = no. port</td><td>I2C + EEPROM ID modul</td></tr>
+        <tr><td class="mono">6</td><td>SCL kanal mux</td><td>I2C</td></tr>
+        <tr><td class="mono">7</td><td>A: analog ADC1, maks 3,3 V</td><td>pH, DO, tanah, MQ</td></tr>
+        <tr><td class="mono">8</td><td>D: digital dua arah, pull-up 4k7</td><td>1-Wire, UART RX, pulsa</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <p style="margin-top:16px">Setiap port mendapat kanal I2C sendiri lewat multiplexer TCA9548A. Jadi enam modul boleh memakai alamat I2C yang sama: setiap modul punya EEPROM ID di <code>0x50</code>, dan dua sensor SHT31 di port berbeda tidak bertabrakan. Jalur A memakai pin ADC1, karena ADC2 di ESP32 tidak bisa dipakai saat Wi-Fi menyala.</p>
+
+  <h3>Lapis 2: identitas modul dan deteksi otomatis</h3>
+  <p>Setiap 10 detik hub memeriksa keenam port dengan urutan berikut dan berhenti di cara pertama yang berhasil:</p>
+  <ol class="steps">
+    <li><b>EEPROM ID</b> AT24C02 di modul (alamat <code>0x50</code>) berisi kode jenis, nomor seri, nama, enam koefisien kalibrasi, dan tanggal kalibrasi, dilindungi CRC16. Cara ini paling andal. Kalibrasi ikut pindah bersama modul saat dipasang ke hub lain.</li>
+    <li><b>Penetapan manual dari aplikasi</b> untuk modul tanpa EEPROM, misalnya "port 3 = pH".</li>
+    <li><b>Probe alamat I2C</b>: <code>0x44/0x45</code> dikenali sebagai SHT3x, <code>0x23/0x5C</code> sebagai BH1750.</li>
+    <li><b>Presence 1-Wire</b> di jalur D: dikenali sebagai DS18B20. Satu port bisa membaca sampai empat probe sekaligus (<code>temp</code>, <code>temp2</code>, …).</li>
+  </ol>
+  <p>Saat modul dicabut, kanalnya dihapus dan aplikasi menerima event. Saat modul baru dicolok, drivernya dibuat dan aplikasi menampilkan "modul terdeteksi otomatis".</p>
+
+  <h3>Katalog sensor per jenis usaha</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Besaran</th><th>Modul</th><th>Antarmuka</th><th>Kode</th><th>Kanal</th><th>Catatan</th></tr></thead>
+    <tbody>
+      <tr class="group"><td colspan="6">Kolam ikan</td></tr>
+      <tr><td>Suhu air</td><td>DS18B20 probe tahan air</td><td>1-Wire (D)</td><td class="mono">0x0101</td><td class="mono">p1.temp</td><td>Dipakai otomatis untuk kompensasi DO</td></tr>
+      <tr><td>pH</td><td>PH-4502C atau Gravity pH v2</td><td>Analog (A)</td><td class="mono">0x0201</td><td class="mono">p3.ph</td><td>Kalibrasi buffer 7 dan 4 setiap 30 hari</td></tr>
+      <tr><td>Oksigen terlarut</td><td>Gravity Analog DO, atau probe DO optik RS485</td><td>A / RS485</td><td class="mono">0x0202</td><td class="mono">p2.do</td><td>Kalibrasi satu titik di udara jenuh</td></tr>
+      <tr><td>Amonia air</td><td>Probe NH₄⁺ ion-selektif RS485</td><td>RS485</td><td class="mono">JSON</td><td class="mono">rs2.nh4</td><td>Sensor paling mahal. Alternatif murah: tes kit manual</td></tr>
+      <tr><td>Tinggi air</td><td>A02YYUW ultrasonik tahan air</td><td>UART (D)</td><td class="mono">0x0301</td><td class="mono">p4.level</td><td>Koef. 0 = tinggi sensor dari dasar (cm)</td></tr>
+      <tr class="group"><td colspan="6">Kebun &amp; sawah</td></tr>
+      <tr><td>Kelembapan tanah</td><td>Capacitive v1.2, atau soil RS485</td><td>A / RS485</td><td class="mono">0x0203</td><td class="mono">p1.soil</td><td>Koef. kering/basah dalam mV. Lapisi elektroniknya dengan resin</td></tr>
+      <tr><td>Suhu &amp; lembap udara</td><td>SHT31 / SHT40 berhousing</td><td>I2C</td><td class="mono">0x0102</td><td class="mono">p2.airtemp</td><td>Terdeteksi otomatis meski tanpa EEPROM</td></tr>
+      <tr><td>Cahaya</td><td>BH1750</td><td>I2C</td><td class="mono">0x0103</td><td class="mono">p3.lux</td><td>Terdeteksi otomatis</td></tr>
+      <tr><td>Tandon air</td><td>A02YYUW</td><td>UART (D)</td><td class="mono">0x0301</td><td class="mono">p4.level</td><td>Maksimal satu per hub (UART bebas tinggal satu)</td></tr>
+      <tr class="group"><td colspan="6">Kandang ternak</td></tr>
+      <tr><td>Suhu &amp; lembap</td><td>SHT31 berhousing</td><td>I2C</td><td class="mono">0x0102</td><td class="mono">p1.hum</td><td>Kipas mengikuti suhu lewat aturan</td></tr>
+      <tr><td>Amonia udara</td><td>MQ-137</td><td>Analog 5 V → dibagi</td><td class="mono">0x0204</td><td class="mono">p2.nh3</td><td>Pemanasan awal 24–48 jam, kalibrasi R0 di udara bersih</td></tr>
+      <tr><td>Cahaya</td><td>BH1750</td><td>I2C</td><td class="mono">0x0103</td><td class="mono">p3.lux</td><td>Untuk aturan lampu</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Menambah jenis sensor baru</h3>
+  <ol class="steps">
+    <li>Tentukan antarmukanya. Jika sensornya RS485/Modbus, cukup kirim profil JSON dari aplikasi (<code>{"cmd":"modbus",…}</code>) dan lewati langkah 2–4.</li>
+    <li>Tambah kode jenis di <code>enum ModuleType</code>, buat kelas turunan <code>SensorDriver</code> (cukup <code>begin()</code> dan <code>sample()</code>, biasanya 20–40 baris), lalu daftarkan di <code>createDriver()</code>.</li>
+    <li>Rakit modul: sensor + chip AT24C02 + steker GX16-8. Tambahkan pembagi tegangan jika keluaran sensor 5 V.</li>
+    <li>Colok modul ke port mana pun, lalu tulis identitasnya: <code>{"cmd":"module_write","port":N,"type":…,"name":"…"}</code>.</li>
+    <li>Kanal barunya langsung tersedia untuk aturan, grafik, dan notifikasi.</li>
+  </ol>
+
+  <h3>Ruang tumbuh tanpa ganti board</h3>
+  <ul class="plain">
+    <li><b>Kanal mux 6 dan 7 masih kosong.</b> Bisa diisi ADS1115 (ADC 16-bit untuk sensor 4–20 mA lewat resistor 150 Ω) atau PCF8574 untuk 8 relay tambahan. Yang perlu ditambah hanya drivernya.</li>
+    <li><b>RS485 menampung sampai 8 profil sensor</b> dalam satu bus, dengan panjang kabel hingga ratusan meter. Pilih jalur ini untuk kolam yang jauh dari hub.</li>
+    <li><b>Lokasi tanpa Wi-Fi.</b> "Gateway 4G" paling sederhana berupa router MiFi 4G. Hub tersambung ke router itu seperti ke Wi-Fi rumah, jadi firmware tidak perlu diubah.</li>
+    <li><b>Lebih dari 6 sensor di satu lokasi:</b> pasang hub kedua. Setiap hub punya ID sendiri dan tampil terpisah di Daftar Perangkat.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section id="wiring">
+  <span class="eyebrow">05 · Wiring</span>
+  <h2>Wiring diagram</h2>
+  <p>Wiring dibagi menjadi lima gambar kecil, bukan satu gambar besar yang kabelnya saling silang. Gambar pertama adalah peta pin ESP32. Setiap label di ujung kabel menunjukkan tujuannya, mengikuti cara skematik profesional memakai label net.</p>
+
+  <h3>A. Peta pin ESP32</h3>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 540" role="img" aria-label="Peta pin ESP32: kiri untuk I2C dan enam port sensor, kanan untuk daya, relay, RS485, LED, dan tombol">
+        <rect class="box" x="400" y="30" width="200" height="450" rx="10" style="stroke-width:2"/>
+        <text class="b" x="500" y="58" text-anchor="middle">ESP32 DevKit</text>
+        <text class="sub" x="500" y="76" text-anchor="middle">WROOM-32 · 4 MB</text>
+        <g>
+          <path class="w c-i2c" d="M300,110 H400"/><text class="mono" x="410" y="114">GPIO21</text><text class="f-i2c" x="292" y="114" text-anchor="end">SDA → TCA9548A + DS3231</text>
+          <path class="w c-i2c" d="M300,136 H400"/><text class="mono" x="410" y="140">GPIO22</text><text class="f-i2c" x="292" y="140" text-anchor="end">SCL → TCA9548A + DS3231</text>
+          <path class="w c-ana" d="M300,162 H400"/><text class="mono" x="410" y="166">GPIO36</text><text class="f-ana" x="292" y="166" text-anchor="end">A1 → Port 1 pin 7</text>
+          <path class="w c-ana" d="M300,188 H400"/><text class="mono" x="410" y="192">GPIO39</text><text class="f-ana" x="292" y="192" text-anchor="end">A2 → Port 2 pin 7</text>
+          <path class="w c-ana" d="M300,214 H400"/><text class="mono" x="410" y="218">GPIO34</text><text class="f-ana" x="292" y="218" text-anchor="end">A3 → Port 3 pin 7</text>
+          <path class="w c-ana" d="M300,240 H400"/><text class="mono" x="410" y="244">GPIO35</text><text class="f-ana" x="292" y="244" text-anchor="end">A4 → Port 4 pin 7</text>
+          <path class="w c-ana" d="M300,266 H400"/><text class="mono" x="410" y="270">GPIO32</text><text class="f-ana" x="292" y="270" text-anchor="end">A5 → Port 5 pin 7</text>
+          <path class="w c-ana" d="M300,292 H400"/><text class="mono" x="410" y="296">GPIO33</text><text class="f-ana" x="292" y="296" text-anchor="end">A6 → Port 6 pin 7</text>
+          <path class="w c-dig" d="M300,318 H400"/><text class="mono" x="410" y="322">GPIO13</text><text class="f-dig" x="292" y="322" text-anchor="end">D1 → Port 1 pin 8</text>
+          <path class="w c-dig" d="M300,344 H400"/><text class="mono" x="410" y="348">GPIO14</text><text class="f-dig" x="292" y="348" text-anchor="end">D2 → Port 2 pin 8</text>
+          <path class="w c-dig" d="M300,370 H400"/><text class="mono" x="410" y="374">GPIO18</text><text class="f-dig" x="292" y="374" text-anchor="end">D3 → Port 3 pin 8</text>
+          <path class="w c-dig" d="M300,396 H400"/><text class="mono" x="410" y="400">GPIO19</text><text class="f-dig" x="292" y="400" text-anchor="end">D4 → Port 4 pin 8</text>
+          <path class="w c-dig" d="M300,422 H400"/><text class="mono" x="410" y="426">GPIO5</text><text class="f-dig" x="292" y="426" text-anchor="end">D5 → Port 5 pin 8</text>
+          <path class="w c-dig" d="M300,448 H400"/><text class="mono" x="410" y="452">GPIO15</text><text class="f-dig" x="292" y="452" text-anchor="end">D6 → Port 6 pin 8</text>
+        </g>
+        <g>
+          <path class="w c-pwr" d="M600,110 H700"/><text class="mono" x="590" y="114" text-anchor="end">VIN</text><text class="f-pwr" x="708" y="114">+5 V dari buck converter</text>
+          <path class="w" d="M600,136 H700"/><text class="mono" x="590" y="140" text-anchor="end">GND</text><text x="708" y="140">GND bersama semua modul</text>
+          <path class="w c-rly" d="M600,162 H700"/><text class="mono" x="590" y="166" text-anchor="end">GPIO25</text><text class="f-rly" x="708" y="166">IN1 relay → R1 (aerator)</text>
+          <path class="w c-rly" d="M600,188 H700"/><text class="mono" x="590" y="192" text-anchor="end">GPIO26</text><text class="f-rly" x="708" y="192">IN2 relay → R2 (pompa)</text>
+          <path class="w c-rly" d="M600,214 H700"/><text class="mono" x="590" y="218" text-anchor="end">GPIO27</text><text class="f-rly" x="708" y="218">IN3 relay → R3</text>
+          <path class="w c-rly" d="M600,240 H700"/><text class="mono" x="590" y="244" text-anchor="end">GPIO23</text><text class="f-rly" x="708" y="244">IN4 relay → R4</text>
+          <path class="w c-acc" d="M600,266 H700"/><text class="mono" x="590" y="270" text-anchor="end">GPIO16</text><text class="f-acc" x="708" y="270">RX2 ← RO MAX3485</text>
+          <path class="w c-acc" d="M600,292 H700"/><text class="mono" x="590" y="296" text-anchor="end">GPIO17</text><text class="f-acc" x="708" y="296">TX2 → DI MAX3485</text>
+          <path class="w c-acc" d="M600,318 H700"/><text class="mono" x="590" y="322" text-anchor="end">GPIO4</text><text class="f-acc" x="708" y="322">DE + RE MAX3485 (dijumper)</text>
+          <path class="w" d="M600,344 H700"/><text class="mono" x="590" y="348" text-anchor="end">GPIO2</text><text x="708" y="348">DIN WS2812 lewat 330 Ω</text>
+          <path class="w" d="M600,370 H700"/><text class="mono" x="590" y="374" text-anchor="end">GPIO0</text><text x="708" y="374">tombol panel → GND (paralel BOOT)</text>
+          <path class="w" d="M600,396 H700"/><text class="mono" x="590" y="400" text-anchor="end">3V3</text><text x="708" y="400">khusus MCU, jangan ke port</text>
+        </g>
+        <g transform="translate(40,508)">
+          <rect x="0" y="-10" width="22" height="4" style="fill: var(--i2c)"/><text class="sm" x="28" y="-4">I2C</text>
+          <rect x="80" y="-10" width="22" height="4" style="fill: var(--ana)"/><text class="sm" x="108" y="-4">analog ADC1</text>
+          <rect x="210" y="-10" width="22" height="4" style="fill: var(--dig)"/><text class="sm" x="238" y="-4">digital port</text>
+          <rect x="330" y="-10" width="22" height="4" style="fill: var(--rly)"/><text class="sm" x="358" y="-4">relay</text>
+          <rect x="420" y="-10" width="22" height="4" style="fill: var(--accent)"/><text class="sm" x="448" y="-4">RS485</text>
+          <rect x="520" y="-10" width="22" height="4" style="fill: var(--pwr)"/><text class="sm" x="548" y="-4">daya</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>GPIO 6–11 (flash), 1/3 (USB serial), dan 12 (strapping tegangan flash) sengaja tidak dipakai. GPIO 34–39 hanya bisa input, jadi cocok untuk jalur analog. GPIO0 adalah tombol BOOT bawaan board, sehingga tombol panel cukup diparalel ke sana.</figcaption>
+  </figure>
+
+  <h3>B. Jalur daya</h3>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 270" role="img" aria-label="Jalur daya: PLN lewat MCB ke PSU 12 volt, buck 5 volt, dan LDO 3,3 volt, beserta beban masing-masing">
+        <defs>
+          <marker id="e-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--ink)"/></marker>
+        </defs>
+        <rect class="box" x="10" y="30" width="110" height="56" rx="6" style="stroke: var(--danger)"/>
+        <text class="b" x="65" y="55" text-anchor="middle">PLN 220 V</text>
+        <text class="sub" x="65" y="72" text-anchor="middle">L · N · PE</text>
+        <rect class="box" x="150" y="30" width="110" height="56" rx="6" style="stroke: var(--danger)"/>
+        <text class="b" x="205" y="55" text-anchor="middle">RCBO 30 mA</text>
+        <text class="sub" x="205" y="72" text-anchor="middle">atau MCB 6 A</text>
+        <rect class="box" x="290" y="30" width="140" height="56" rx="6"/>
+        <text class="b" x="360" y="55" text-anchor="middle">PSU 12 V 2 A</text>
+        <text class="sub" x="360" y="72" text-anchor="middle">switching tertutup</text>
+        <rect class="box" x="470" y="30" width="140" height="56" rx="6"/>
+        <text class="b" x="540" y="55" text-anchor="middle">Buck 5 V 3 A</text>
+        <text class="sub" x="540" y="72" text-anchor="middle">LM2596 / MP1584</text>
+        <rect class="box" x="650" y="30" width="140" height="56" rx="6"/>
+        <text class="b" x="720" y="55" text-anchor="middle">LDO 3,3 V</text>
+        <text class="sub" x="720" y="72" text-anchor="middle">AMS1117, khusus port</text>
+        <path class="w hv" d="M120,58 H148" marker-end="url(#e-ar)"/>
+        <path class="w hv" d="M260,58 H288" marker-end="url(#e-ar)"/>
+        <path class="w c-pwr" d="M430,58 H468" marker-end="url(#e-ar)"/>
+        <text class="sm f-pwr" x="449" y="50" text-anchor="middle">12 V</text>
+        <path class="w c-pwr" d="M610,58 H648" marker-end="url(#e-ar)"/>
+        <text class="sm f-pwr" x="629" y="50" text-anchor="middle">5 V</text>
+
+        <path class="w c-pwr" d="M360,86 V112"/>
+        <text class="b sm f-pwr" x="300" y="128">+12 V ke</text>
+        <text class="sm" x="300" y="146">• port pin 1 (PTC 0,5 A)</text>
+        <text class="sm" x="300" y="164">• sensor RS485</text>
+        <path class="w c-pwr" d="M540,86 V112"/>
+        <text class="b sm f-pwr" x="478" y="128">+5 V ke</text>
+        <text class="sm" x="478" y="146">• ESP32 VIN</text>
+        <text class="sm" x="478" y="164">• relay VCC &amp; JD-VCC</text>
+        <text class="sm" x="478" y="182">• WS2812</text>
+        <text class="sm" x="478" y="200">• port pin 2 (PTC 0,5 A)</text>
+        <path class="w c-pwr" d="M720,86 V112"/>
+        <text class="b sm f-pwr" x="658" y="128">+3,3 V port ke</text>
+        <text class="sm" x="658" y="146">• port pin 3</text>
+        <text class="sm" x="658" y="164">• TCA9548A + pull-up</text>
+        <text class="sm" x="658" y="182">• DS3231, MAX3485</text>
+
+        <path class="w hv" d="M205,86 V200" marker-end="url(#e-ar)"/>
+        <rect class="box" x="120" y="202" width="170" height="44" rx="6" style="stroke: var(--danger)"/>
+        <text class="b" x="205" y="222" text-anchor="middle">Jalur beban 220 V</text>
+        <text class="sub" x="205" y="238" text-anchor="middle">ke kontaktor (gambar D)</text>
+        <rect class="zone" x="830" y="30" width="160" height="108" rx="6"/>
+        <text class="b sm" x="842" y="52">Kapasitor</text>
+        <text class="sm" x="842" y="72">470 µF di 5 V</text>
+        <text class="sm" x="842" y="90">100 µF + 100 nF</text>
+        <text class="sm" x="842" y="108">di tiap port</text>
+        <text class="sm" x="842" y="126">semua GND disatukan</text>
+      </svg>
+    </div>
+    <figcaption>Regulator 3,3 V untuk port sengaja dipisah dari regulator bawaan board. Dengan begitu, korsleting di kabel sensor tidak ikut me-reset ESP32. RCBO 30 mA wajib dipasang untuk instalasi di dekat kolam karena air dan listrik 220 V berada di area yang sama.</figcaption>
+  </figure>
+
+  <h3>C. Satu Smart Port (ulangi untuk port 1–6)</h3>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 330" role="img" aria-label="Rangkaian satu Smart Port: daya lewat PTC, I2C dari kanal multiplexer dengan pull-up, jalur analog dan digital lewat resistor seri ke soket GX16-8">
+        <g>
+          <text class="b f-pwr" x="20" y="54">+12 V</text>
+          <path class="w c-pwr" d="M150,50 H370"/><rect x="370" y="43" width="56" height="14" rx="2" style="fill: var(--panel); stroke: var(--pwr)"/><text class="sm" x="398" y="37" text-anchor="middle">PTC 0,5 A</text><path class="w c-pwr" d="M426,50 H798"/>
+          <text class="b f-pwr" x="20" y="88">+5 V</text>
+          <path class="w c-pwr" d="M150,84 H370"/><rect x="370" y="77" width="56" height="14" rx="2" style="fill: var(--panel); stroke: var(--pwr)"/><text class="sm" x="398" y="71" text-anchor="middle">PTC 0,5 A</text><path class="w c-pwr" d="M426,84 H798"/>
+          <text class="b f-pwr" x="20" y="122">+3,3 V port</text>
+          <path class="w c-pwr" d="M150,118 H798"/>
+          <text class="b" x="20" y="156">GND</text>
+          <path class="w" d="M150,152 H798"/>
+          <text class="b f-i2c" x="20" y="190">TCA SD0</text>
+          <path class="w c-i2c" d="M150,186 H798"/><circle class="dot" cx="600" cy="186" r="3.5"/><text class="sm" x="610" y="180">4k7 ke 3,3 V</text>
+          <text class="b f-i2c" x="20" y="224">TCA SC0</text>
+          <path class="w c-i2c" d="M150,220 H798"/><circle class="dot" cx="600" cy="220" r="3.5"/><text class="sm" x="610" y="214">4k7 ke 3,3 V</text>
+          <text class="b f-ana" x="20" y="258">GPIO36 (A1)</text>
+          <path class="w c-ana" d="M150,254 H370"/><rect x="370" y="247" width="56" height="14" rx="2" style="fill: var(--panel); stroke: var(--ana)"/><text class="sm" x="398" y="241" text-anchor="middle">100 Ω</text><path class="w c-ana" d="M426,254 H798"/>
+          <text class="b f-dig" x="20" y="292">GPIO13 (D1)</text>
+          <path class="w c-dig" d="M150,288 H370"/><rect x="370" y="281" width="56" height="14" rx="2" style="fill: var(--panel); stroke: var(--dig)"/><text class="sm" x="398" y="275" text-anchor="middle">100 Ω</text><path class="w c-dig" d="M426,288 H798"/><circle class="dot" cx="600" cy="288" r="3.5"/><text class="sm" x="610" y="282">4k7 ke 3,3 V</text>
+        </g>
+        <rect class="zone" x="800" y="30" width="190" height="276" rx="8"/>
+        <text class="b sm" x="895" y="24" text-anchor="middle" style="letter-spacing:.06em">SOKET GX16-8</text>
+        <text class="mono" x="814" y="54">1 · +12 V</text>
+        <text class="mono" x="814" y="88">2 · +5 V</text>
+        <text class="mono" x="814" y="122">3 · +3,3 V</text>
+        <text class="mono" x="814" y="156">4 · GND</text>
+        <text class="mono" x="814" y="190">5 · SDA</text>
+        <text class="mono" x="814" y="224">6 · SCL</text>
+        <text class="mono" x="814" y="258">7 · A</text>
+        <text class="mono" x="814" y="292">8 · D</text>
+      </svg>
+    </div>
+    <figcaption>Pull-up I2C dipasang di setiap kanal keluaran TCA9548A, karena multiplexer tidak meneruskan pull-up dari bus utama. Pull-up 4k7 di jalur D dibutuhkan untuk 1-Wire, sekaligus membuat port kosong terbaca "tidak ada modul". Resistor 100 Ω melindungi GPIO dari lonjakan di kabel panjang. Untuk port 2–6, ganti SD0/SC0, GPIO36, dan GPIO13 sesuai peta pin di gambar A.</figcaption>
+  </figure>
+  <div class="note warn">
+    <b>Jalur A maksimum 3,3 V</b>
+    <p>Papan pH PH-4502C dan MQ-137 mengeluarkan sinyal sampai 5 V. Pasang pembagi tegangan <b>di dalam modul</b> (10 kΩ seri, 20 kΩ ke GND, rasio 0,66). Rasio ini sudah menjadi nilai bawaan driver MQ-137 (koefisien 4). Dengan cara ini, hub tidak perlu tahu sensor mana yang bertegangan 5 V.</p>
+  </div>
+
+  <h3>D. Relay ke kontaktor ke beban</h3>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 270" role="img" aria-label="Relay modul menggerakkan koil kontaktor 220 volt, kontak utama kontaktor menyalakan aerator">
+        <path class="w hv" d="M370,24 H900"/>
+        <text class="b sm" x="376" y="16" style="fill: var(--danger)">L 220 V (setelah RCBO)</text>
+        <path class="w" d="M480,240 H980" style="stroke: var(--line-strong); stroke-width: 2"/>
+        <text class="b sm" x="486" y="258">N</text>
+
+        <text class="b f-rly" x="20" y="96">GPIO25</text>
+        <path class="w c-rly" d="M86,92 H180"/>
+        <text class="sm" x="134" y="85" text-anchor="middle">IN1</text>
+        <rect class="box" x="180" y="56" width="170" height="124" rx="6"/>
+        <text class="b" x="265" y="84" text-anchor="middle">Modul relay 4 ch</text>
+        <text class="sub" x="265" y="102" text-anchor="middle">optocoupler, aktif LOW</text>
+        <text class="sub" x="265" y="120" text-anchor="middle">VCC &amp; JD-VCC = 5 V</text>
+        <text class="mono sm" x="340" y="94" text-anchor="end">COM</text>
+        <text class="mono sm" x="340" y="154" text-anchor="end">NO</text>
+        <path class="w hv" d="M350,90 H370 V24"/>
+        <path class="w hv" d="M350,150 H500 V80 H560"/>
+        <text class="mono sm" x="568" y="84">A1</text>
+        <rect class="box" x="560" y="44" width="170" height="146" rx="6" style="stroke: var(--danger)"/>
+        <text class="b" x="645" y="112" text-anchor="middle">Kontaktor 220 V</text>
+        <text class="sub" x="645" y="130" text-anchor="middle">koil A1–A2</text>
+        <text class="sub" x="645" y="148" text-anchor="middle">kontak utama 1L1 → 2T1</text>
+        <text class="mono sm" x="568" y="168">A2</text>
+        <path class="w" d="M560,164 H530 V240" style="stroke: var(--line-strong); stroke-width: 2"/>
+        <path class="w hv" d="M700,24 V44"/>
+        <text class="mono sm" x="706" y="60">1L1</text>
+        <path class="w hv" d="M730,120 H820"/>
+        <text class="mono sm" x="736" y="114">2T1</text>
+        <rect class="box" x="820" y="84" width="160" height="76" rx="6"/>
+        <text class="b" x="900" y="114" text-anchor="middle">Aerator / pompa</text>
+        <text class="sub" x="900" y="132" text-anchor="middle">+ PE ke body motor</text>
+        <path class="w" d="M900,160 V240" style="stroke: var(--line-strong); stroke-width: 2"/>
+        <circle class="dot" cx="530" cy="240" r="3.5"/><circle class="dot" cx="900" cy="240" r="3.5"/>
+        <circle class="dot" cx="370" cy="24" r="3.5" style="fill: var(--danger)"/><circle class="dot" cx="700" cy="24" r="3.5" style="fill: var(--danger)"/>
+      </svg>
+    </div>
+    <figcaption>Relay modul 10 A hanya menggerakkan koil kontaktor. Arus motor aerator atau pompa lewat kontak utama kontaktor. Motor induktif menghasilkan busur listrik saat dimatikan, dan relay modul yang dipakai langsung akan cepat aus atau kontaknya lengket.</figcaption>
+  </figure>
+  <div class="note danger">
+    <b>Keselamatan 220 V</b>
+    <p>Kerjakan semua sambungan 220 V dalam keadaan RCBO/MCB OFF. Pisahkan sisi 220 V ke satu sisi box dengan sekat, jauh dari PCB logika. Pakai kabel NYAF 1,5 mm² dan skun, jangan kabel jumper. Sambungkan PE ke body motor. Jika ragu, minta teknisi listrik memasang panel bebannya. Firmware hanya mengirim sinyal 3,3 V ke modul relay.</p>
+  </div>
+
+  <h3>E. Bus RS485</h3>
+  <figure class="fig">
+    <div class="scroll">
+      <svg class="dg" viewBox="0 0 1000 240" role="img" aria-label="ESP32 ke MAX3485 ke terminal A B, lalu bus diparalel ke beberapa sensor dengan terminator 120 ohm di ujung">
+        <text class="b f-acc" x="20" y="64">GPIO16</text><path class="w c-acc" d="M90,60 H220"/><text class="sm" x="155" y="53" text-anchor="middle">← RO</text>
+        <text class="b f-acc" x="20" y="100">GPIO17</text><path class="w c-acc" d="M90,96 H220"/><text class="sm" x="155" y="89" text-anchor="middle">DI →</text>
+        <text class="b f-acc" x="20" y="136">GPIO4</text><path class="w c-acc" d="M90,132 H220"/><text class="sm" x="155" y="125" text-anchor="middle">DE + RE →</text>
+        <rect class="box" x="220" y="36" width="160" height="120" rx="6"/>
+        <text class="b" x="300" y="70" text-anchor="middle">MAX3485</text>
+        <text class="sub" x="300" y="88" text-anchor="middle">modul TTL–RS485</text>
+        <text class="sub" x="300" y="106" text-anchor="middle">VCC 3,3 V</text>
+        <text class="mono sm" x="372" y="84" text-anchor="end">A</text>
+        <text class="mono sm" x="372" y="122" text-anchor="end">B</text>
+        <path class="w c-acc" d="M380,80 H980"/>
+        <path class="w c-acc dash" d="M380,118 H980"/>
+        <text class="b sm" x="420" y="72">A (twisted pair)</text>
+        <text class="b sm" x="420" y="138">B</text>
+        <circle class="dot" cx="600" cy="80" r="3.5"/><circle class="dot" cx="640" cy="118" r="3.5"/>
+        <circle class="dot" cx="780" cy="80" r="3.5"/><circle class="dot" cx="820" cy="118" r="3.5"/>
+        <path class="w c-acc" d="M600,80 V170"/><path class="w c-acc dash" d="M640,118 V170"/>
+        <path class="w c-acc" d="M780,80 V170"/><path class="w c-acc dash" d="M820,118 V170"/>
+        <rect class="box" x="550" y="170" width="140" height="50" rx="6"/>
+        <text class="b" x="620" y="191" text-anchor="middle">Probe DO</text>
+        <text class="sub mono" x="620" y="208" text-anchor="middle">addr 1</text>
+        <rect class="box" x="730" y="170" width="140" height="50" rx="6"/>
+        <text class="b" x="800" y="191" text-anchor="middle">Probe NH₄⁺</text>
+        <text class="sub mono" x="800" y="208" text-anchor="middle">addr 2</text>
+        <rect x="944" y="86" width="14" height="26" rx="2" style="fill: var(--panel); stroke: var(--ink)"/>
+        <text class="sm" x="938" y="104" text-anchor="end">120 Ω</text>
+        <text class="sub" x="300" y="190" text-anchor="middle">+12 V &amp; GND ikut di kabel 4 inti</text>
+      </svg>
+    </div>
+    <figcaption>Semua sensor RS485 diparalel di satu pasang kabel. Setiap sensor diberi alamat berbeda dari pabriknya atau lewat software vendor. Resistor terminator 120 Ω dipasang hanya di ujung terjauh bus. Banyak modul MAX3485 sudah punya terminator di sisi hub: lepas jumpernya jika bus pendek (di bawah 10 m).</figcaption>
+  </figure>
+  <p>Komponen di bus I2C utama: TCA9548A (alamat <code>0x70</code>, pin A0–A2 ke GND) dan DS3231 (<code>0x68</code>). Keduanya mendapat 3,3 V port, SDA ke GPIO21, dan SCL ke GPIO22. Pull-up bus utama memakai yang sudah ada di modul DS3231.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="program">
+  <span class="eyebrow">06 · Program</span>
+  <h2>Firmware</h2>
+  <p>Kode lengkap ada di folder proyek <code>firmware/sysnergi_hub/</code>. Kode sudah lolos compile dengan Arduino core ESP32 3.3.1 tanpa warning, tapi <b>belum diuji di perangkat keras</b>. Lakukan uji bertahap di meja kerja dulu sebelum dipasang di kolam.</p>
+  <pre class="tree">firmware/
+├── platformio.ini          alternatif PlatformIO
+├── README.md
+└── sysnergi_hub/
+    ├── sysnergi_hub.ino    setup, loop kontrol, perintah, telemetri, RTC
+    ├── config.h            semua pin &amp; konstanta (ubah di sini saja)
+    ├── partitions.csv      2 slot OTA 1,94 MB + LittleFS 64 KB
+    ├── sensor_driver.h     antarmuka driver, deskriptor EEPROM, kode jenis
+    ├── drivers.cpp         DS18B20, SHT3x, BH1750, pH, DO, tanah, MQ-137, A02YYUW
+    ├── port_manager.*      deteksi otomatis, hot-plug, tulis EEPROM &amp; kalibrasi
+    ├── channels.*          tabel kanal p2.do, rs1.nh3, ...
+    ├── rules.*             aturan: histeresis, jendela waktu, batas aman, failsafe
+    ├── relays.*            relay: maks. lama nyala, jeda motor 30 s, manual vs aturan
+    ├── modbus.*            master Modbus RTU dari profil JSON
+    ├── net.*               BLE/hotspot provisioning, MQTT, buffer offline, OTA
+    └── ui.*                LED status &amp; tombol</pre>
+
+  <h3>Cara upload (Arduino IDE 2)</h3>
+  <ol class="steps">
+    <li>Pasang board <b>esp32 by Espressif</b> versi 3.x, lalu library <b>ArduinoJson 7</b>, <b>OneWire</b>, dan <b>DallasTemperature</b>. Ketiga library sudah terpasang di laptop ini.</li>
+    <li>Buka <code>sysnergi_hub.ino</code>. Pilih board <b>ESP32 Dev Module</b>.</li>
+    <li>Pilih Partition Scheme <b>Huge APP (3MB No OTA)</b>. Pilihan ini hanya agar IDE tidak menolak ukuran sketch. Tabel partisi yang ditulis ke flash tetap <code>partitions.csv</code> di folder sketch, yang punya dua slot OTA.</li>
+    <li>Ganti <code>MQTT_URI</code> di <code>config.h</code> ke broker Anda. Default-nya broker publik HiveMQ, hanya untuk uji coba.</li>
+    <li>Upload, buka Serial Monitor 115200, lalu catat HWID dan POP yang tercetak.</li>
+  </ol>
+  <div class="note warn">
+    <b>Ruang flash tinggal ±50 KB</b>
+    <p>Image firmware 1.981.191 byte, slot aplikasinya 2.031.616 byte (terpakai 97,5%). Bagian terbesar adalah stack Bluetooth bawaan Arduino-ESP32. Untuk versi produksi, pakai modul <b>ESP32-WROOM-32E N8 (8 MB)</b> dengan harga hampir sama, atau build lewat pioarduino dengan <code>custom_sdkconfig</code> untuk mematikan Bluetooth Classic yang tidak dipakai.</p>
+  </div>
+
+  <h3>Topik MQTT</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Topik <span class="mono" style="text-transform:none">sysnergi/&lt;id&gt;/…</span></th><th>Arah</th><th>Isi</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">telemetry</td><td>hub → cloud</td><td>Setiap 30 s: <code>{"ts","up","rssi","ch":{"p2.do":4.1,…},"relay":[1,0,0,0]}</code></td></tr>
+      <tr><td class="mono">event</td><td>hub → cloud</td><td>Peringatan dan info (modul dicolok, batas aman, OTA). Disimpan dulu saat offline.</td></tr>
+      <tr><td class="mono">state</td><td>hub → cloud</td><td>Retained: versi firmware, isi 6 port, status relay, aturan aktif</td></tr>
+      <tr><td class="mono">online</td><td>hub → cloud</td><td>Retained <code>1</code> / <code>0</code> (last will). Dipakai untuk "Hub Kolam 3 terputus".</td></tr>
+      <tr><td class="mono">cmd</td><td>cloud → hub</td><td>Perintah JSON (tabel di bawah)</td></tr>
+      <tr><td class="mono">ack</td><td>hub → cloud</td><td>Hasil perintah <code>{"cmd","ok"}</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Perintah</h3>
+  <p>Perintah yang sama bisa diketik di Serial Monitor sebagai satu baris JSON. Cara ini memudahkan uji coba di meja kerja tanpa server.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>cmd</th><th>Contoh</th><th>Dipakai layar</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">relay</td><td class="mono">{"cmd":"relay","idx":0,"on":true,"min":10}</td><td>Kontrol cepat, "Nyalakan aerator"</td></tr>
+      <tr><td class="mono">relay_auto</td><td class="mono">{"cmd":"relay_auto","idx":0}</td><td>Kembali ke mode otomatis</td></tr>
+      <tr><td class="mono">rules</td><td class="mono">{"cmd":"rules","rules":[…]}</td><td>Otomasi AI → Aktifkan</td></tr>
+      <tr><td class="mono">calibrate</td><td class="mono">{"cmd":"calibrate","port":3,"cal":[-0.0056,15.4]}</td><td>Kalibrasi sensor</td></tr>
+      <tr><td class="mono">module_write</td><td class="mono">{"cmd":"module_write","port":2,"type":514,"name":"DO Kolam 2"}</td><td>Pemrograman modul baru</td></tr>
+      <tr><td class="mono">ports</td><td class="mono">{"cmd":"ports","map":{"3":513}}</td><td>Modul tanpa EEPROM</td></tr>
+      <tr><td class="mono">modbus</td><td class="mono">{"cmd":"modbus","list":[{"addr":1,"reg":0,"fmt":"f32","key":"do","unit":"mg/L"}]}</td><td>Tambah sensor RS485</td></tr>
+      <tr><td class="mono">relay_test</td><td class="mono">{"cmd":"relay_test"}</td><td>Uji relay</td></tr>
+      <tr><td class="mono">ota</td><td class="mono">{"cmd":"ota","url":"http://…/fw.bin","sha256":"…"}</td><td>Pembaruan v1.5 tersedia</td></tr>
+      <tr><td class="mono">rescan · state · reboot</td><td class="mono">{"cmd":"reboot"}</td><td>Mulai ulang hub</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Format aturan</h3>
+  <p>Contoh ini adalah aturan dari layar Otomasi AI: "Isi kolam kalau airnya kurang dari 70 cm, pompa nyala sampai 80 cm, maksimal 45 menit sekali jalan".</p>
+  <pre>{"id":"r2","name":"Isi kolam otomatis","en":true,
+ "if":{"ch":"p4.level","op":"&lt;","val":70,"hyst":10},
+ "then":{"relay":1},
+ "maxMin":45,
+ "fail":"off",
+ "notify":false}</pre>
+  <ul class="plain">
+    <li><b>hyst</b>: pompa menyala di bawah 70 cm dan baru mati setelah 70 + 10 = 80 cm, sehingga tidak bolak-balik nyala-mati.</li>
+    <li><b>maxMin</b>: batas aman. Jika tercapai, relay dimatikan dan dikunci sampai kondisi aturan pulih, lalu event dikirim ke aplikasi.</li>
+    <li><b>fail</b>: perilaku saat sensor mati atau datanya basi lebih dari 60 detik. Untuk aerator pakai <code>"on"</code> (lebih aman ikan dapat oksigen). Untuk pompa isi pakai <code>"off"</code> (lebih aman tidak meluap).</li>
+    <li><b>time</b> (opsional): <code>{"from":"00:00","to":"05:00"}</code> untuk "Aerator malam hari". Jendela yang melewati tengah malam juga didukung.</li>
+    <li>Aturan tanpa <code>then</code> hanya mengirim peringatan, misalnya "Kabari bila amonia &gt; 0,1 ppm".</li>
+    <li>Beberapa aturan yang menunjuk relay yang sama digabung dengan OR. Perintah manual dari aplikasi selalu didahulukan sampai durasinya habis.</li>
+  </ul>
+
+  <h3>Urutan uji di meja kerja</h3>
+  <ol class="steps">
+    <li>ESP32 saja: upload, pastikan Serial Monitor menampilkan HWID dan LED biru berkedip.</li>
+    <li>Tambah relay: kirim <code>{"cmd":"relay_test"}</code>, keempat relay harus klik bergantian. Belum ada beban 220 V.</li>
+    <li>Tambah TCA9548A + satu DS18B20 di port 1: dalam 10 detik muncul <code>[port] P1 -&gt; DS18B20</code>.</li>
+    <li>Provisioning dari aplikasi ESP BLE Provisioning (Play Store / App Store) memakai POP dari Serial. LED harus berubah hijau.</li>
+    <li>Cabut Wi-Fi router: LED kuning, aturan tetap jalan. Nyalakan lagi: data yang tertunda terkirim.</li>
+    <li>Baru setelah itu pasang kontaktor dan beban 220 V.</li>
+  </ol>
+</section>
+
+<!-- ============================================================ -->
+<section id="alat">
+  <span class="eyebrow">07 · Alat &amp; bahan</span>
+  <h2>Daftar alat dan bahan</h2>
+  <p>Harga adalah perkiraan pasar daring Indonesia dan bisa berbeda jauh antar penjual. Pakai angka ini untuk menyusun anggaran, bukan untuk penawaran harga.</p>
+
+  <h3>Hub inti (satu unit)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Komponen</th><th class="num">Jml</th><th class="num">Perkiraan (Rp)</th></tr></thead>
+    <tbody>
+      <tr><td>ESP32 DevKit 38 pin (WROOM-32, 4 MB). Produksi: WROOM-32E N8</td><td class="num">1</td><td class="num">65.000</td></tr>
+      <tr><td>Modul multiplexer I2C TCA9548A</td><td class="num">1</td><td class="num">25.000</td></tr>
+      <tr><td>Modul RTC DS3231 + baterai CR2032</td><td class="num">1</td><td class="num">30.000</td></tr>
+      <tr><td>Modul TTL–RS485 MAX3485 (3,3 V)</td><td class="num">1</td><td class="num">15.000</td></tr>
+      <tr><td>Modul relay 4 channel 5 V optocoupler</td><td class="num">1</td><td class="num">35.000</td></tr>
+      <tr><td>Power supply 12 V 2 A switching (tertutup)</td><td class="num">1</td><td class="num">60.000</td></tr>
+      <tr><td>Buck converter 5 V 3 A (LM2596 / MP1584)</td><td class="num">1</td><td class="num">15.000</td></tr>
+      <tr><td>Regulator AMS1117-3,3 (modul)</td><td class="num">1</td><td class="num">5.000</td></tr>
+      <tr><td>LED WS2812B 1 butir + resistor 330 Ω</td><td class="num">1</td><td class="num">5.000</td></tr>
+      <tr><td>Tombol panel tahan air 12 mm</td><td class="num">1</td><td class="num">12.000</td></tr>
+      <tr><td>Konektor GX16-8 pasang (soket + steker)</td><td class="num">6</td><td class="num">90.000</td></tr>
+      <tr><td>PTC resettable 0,5 A</td><td class="num">12</td><td class="num">12.000</td></tr>
+      <tr><td>Resistor 4k7 dan 100 Ω, kapasitor 470 µF / 100 µF / 100 nF</td><td class="num">1 set</td><td class="num">15.000</td></tr>
+      <tr><td>PCB lubang 9×15 cm (atau PCB pesanan untuk produksi)</td><td class="num">1</td><td class="num">20.000</td></tr>
+      <tr><td>Terminal block, pin header, kabel jumper</td><td class="num">1 set</td><td class="num">30.000</td></tr>
+      <tr><td>Box panel IP65 ±20×20×10 cm</td><td class="num">1</td><td class="num">90.000</td></tr>
+      <tr><td>Cable gland PG7 / PG9</td><td class="num">6</td><td class="num">18.000</td></tr>
+      <tr class="total"><td>Subtotal hub inti</td><td class="num"></td><td class="num">±542.000</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Per modul sensor (ditambah ke harga sensornya)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Komponen</th><th class="num">Jml</th><th class="num">Perkiraan (Rp)</th></tr></thead>
+    <tbody>
+      <tr><td>EEPROM AT24C02 (chip SOP-8 atau modul kecil)</td><td class="num">1</td><td class="num">5.000</td></tr>
+      <tr><td>Kabel 8 inti berpelindung, 3–5 m</td><td class="num">1</td><td class="num">25.000</td></tr>
+      <tr><td>PCB kecil, heat shrink, resin pelapis</td><td class="num">1</td><td class="num">8.000</td></tr>
+      <tr class="total"><td>Per modul</td><td class="num"></td><td class="num">±38.000</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Sensor (pilih sesuai usaha)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Sensor</th><th>Usaha</th><th class="num">Perkiraan (Rp)</th></tr></thead>
+    <tbody>
+      <tr><td>DS18B20 probe tahan air</td><td>kolam, kebun</td><td class="num">25.000</td></tr>
+      <tr><td>Capacitive soil moisture v1.2</td><td>kebun</td><td class="num">15.000</td></tr>
+      <tr><td>BH1750 cahaya</td><td>kebun, kandang</td><td class="num">25.000</td></tr>
+      <tr><td>SHT31 dengan housing probe</td><td>kebun, kandang</td><td class="num">120.000</td></tr>
+      <tr><td>MQ-137 amonia udara</td><td>kandang</td><td class="num">150.000</td></tr>
+      <tr><td>PH-4502C + elektroda pH</td><td>kolam (hemat)</td><td class="num">200.000</td></tr>
+      <tr><td>A02YYUW ultrasonik tahan air</td><td>kolam, tandon</td><td class="num">300.000</td></tr>
+      <tr><td>DFRobot Gravity pH v2 (lebih stabil)</td><td>kolam</td><td class="num">650.000</td></tr>
+      <tr><td>DFRobot Gravity Analog DO kit</td><td>kolam</td><td class="num">±3.500.000</td></tr>
+      <tr><td>Probe DO optik / NH₄⁺ RS485 kelas industri</td><td>kolam</td><td class="num">±5–10 juta</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Beban 220 V (per beban)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Komponen</th><th class="num">Jml</th><th class="num">Perkiraan (Rp)</th></tr></thead>
+    <tbody>
+      <tr><td>RCBO / ELCB 30 mA (satu untuk panel)</td><td class="num">1</td><td class="num">200.000</td></tr>
+      <tr><td>Kontaktor 1 fasa 9 A, koil 220 V</td><td class="num">1 per beban</td><td class="num">130.000</td></tr>
+      <tr><td>MCB 1P 6–10 A per beban</td><td class="num">1 per beban</td><td class="num">45.000</td></tr>
+      <tr><td>Kabel NYAF 1,5 mm² 10 m, skun, rel DIN</td><td class="num">1 set</td><td class="num">70.000</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Alat kerja</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Alat</th><th>Kegunaan</th></tr></thead>
+    <tbody>
+      <tr><td>Solder 40–60 W, timah, flux, penyedot timah</td><td>Merakit PCB dan modul</td></tr>
+      <tr><td>Multimeter digital</td><td>Cek tegangan 12/5/3,3 V sebelum ESP32 dipasang, cek sambungan</td></tr>
+      <tr><td>Tang potong, tang kupas, tang crimp + skun</td><td>Kabel sensor dan kabel 220 V</td></tr>
+      <tr><td>Obeng set, bor + mata step drill</td><td>Lubang box untuk GX16-8, gland, LED, tombol</td></tr>
+      <tr><td>Heat gun (atau korek) dan heat shrink</td><td>Isolasi sambungan kabel sensor</td></tr>
+      <tr><td>Kabel USB data (micro-USB / Type-C sesuai board)</td><td>Upload firmware</td></tr>
+      <tr><td>Laptop dengan Arduino IDE 2</td><td>Compile, upload, Serial Monitor</td></tr>
+      <tr><td>Dongle USB–RS485 (opsional, ±Rp 25.000)</td><td>Cek alamat dan register sensor Modbus dari PC</td></tr>
+      <tr><td>Logic analyzer 8 ch (opsional, ±Rp 80.000)</td><td>Debug I2C dan RS485 jika ada yang tidak terbaca</td></tr>
+      <tr><td>Larutan buffer pH 4 dan 7</td><td>Kalibrasi pH</td></tr>
+    </tbody>
+  </table></div>
+  <p>Contoh paket kolam hemat: hub inti, tiga modul (suhu, pH PH-4502C, tinggi air), satu kontaktor untuk aerator, dan RCBO. Totalnya sekitar <b>Rp 1,6 juta</b> tanpa sensor DO. Sensor DO menjadi pengeluaran terbesar, jadi rencanakan pembeliannya terpisah.</p>
+</section>
+</div>

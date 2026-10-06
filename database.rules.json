@@ -1,0 +1,97 @@
+{
+  // Model data: docs/data-model.md (bagian Realtime Database)
+  // HUB    = auth.uid === hubs/$hub/meta/authUid (diisi provisioning pabrik)
+  // MEMBER = hubs/$hub/acl/{auth.uid} ada (cermin sites.roles di Firestore)
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "firmware": {
+      ".read": "auth != null",
+      ".write": false
+    },
+
+    "hubs": {
+      ".indexOn": ["live/ts"],
+
+      "$hub": {
+        "meta": {
+          ".read": "auth != null && (data.child('authUid').val() === auth.uid || root.child('hubs/' + $hub + '/acl/' + auth.uid).exists())",
+
+          "authUid": { ".write": false },
+
+          // Klaim: nonce yang hanya bisa didapat lewat BLE harus cocok & belum kedaluwarsa.
+          // Lepas: owner sendiri. Reset pabrik: hub sendiri.
+          "ownerUid": {
+            ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid && root.child('hubs/' + $hub + '/claim/nonce').exists() && newData.parent().child('claimNonce').val() === root.child('hubs/' + $hub + '/claim/nonce').val() && root.child('hubs/' + $hub + '/claim/exp').val() > now) || (!newData.exists() && (data.val() === auth.uid || root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid)))"
+          },
+          "claimNonce": {
+            ".write": "auth != null && ((newData.exists() && !data.parent().child('ownerUid').exists() && newData.parent().child('ownerUid').val() === auth.uid) || (!newData.exists() && (data.parent().child('ownerUid').val() === auth.uid || data.parent().child('authUid').val() === auth.uid)))",
+            ".validate": "newData.isString()"
+          },
+          "siteId": {
+            ".write": "auth != null && (newData.parent().child('ownerUid').val() === auth.uid || (!newData.exists() && (data.parent().child('ownerUid').val() === auth.uid || data.parent().child('authUid').val() === auth.uid)))",
+            ".validate": "newData.isString()"
+          },
+          "$other": { ".validate": false }
+        },
+
+        "acl": {
+          ".read": "auth != null && (root.child('hubs/' + $hub + '/acl/' + auth.uid).exists() || root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid)",
+          // Ganti seluruh ACL: saat klaim (pemilik baru), oleh owner, atau dihapus hub saat reset pabrik.
+          ".write": "auth != null && ((!root.child('hubs/' + $hub + '/meta/ownerUid').exists() && newData.parent().child('meta/ownerUid').val() === auth.uid) || root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'owner' || (!newData.exists() && root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid))",
+          "$uid": {
+            // Anggota boleh keluar sendiri.
+            ".write": "auth != null && $uid === auth.uid && !newData.exists()",
+            ".validate": "newData.val() === 'owner' || newData.val() === 'operator' || newData.val() === 'viewer'"
+          }
+        },
+
+        "claim": {
+          ".read": "auth != null && root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid",
+          ".write": "auth != null && root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid",
+          ".validate": "newData.hasChildren(['nonce', 'exp']) && newData.child('nonce').isString() && newData.child('nonce').val().length >= 16 && newData.child('exp').val() <= now + 900000"
+        },
+
+        "live": {
+          ".read": "auth != null && (root.child('hubs/' + $hub + '/acl/' + auth.uid).exists() || root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid)",
+          ".write": "auth != null && root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid",
+          ".validate": "newData.hasChildren(['ts']) && newData.child('ts').isNumber() && newData.child('ts').val() <= now + 5000"
+        },
+
+        "ack": {
+          ".read": "auth != null && (root.child('hubs/' + $hub + '/acl/' + auth.uid).exists() || root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid)",
+          ".write": "auth != null && root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid",
+          "$cmd": {
+            // App pengirim menghapus ack setelah dibaca agar node ini tidak menumpuk.
+            ".write": "auth != null && !newData.exists() && (root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'owner' || root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'operator')",
+            ".validate": "newData.hasChildren(['ok', 'ts']) && newData.child('ok').isBoolean()"
+          }
+        },
+
+        // Ditulis Cloud Functions (watchdog). Admin SDK melewati rules.
+        "status": {
+          ".read": "auth != null && root.child('hubs/' + $hub + '/acl/' + auth.uid).exists()",
+          ".write": false
+        },
+
+        "down": {
+          ".read": "auth != null && (root.child('hubs/' + $hub + '/acl/' + auth.uid).exists() || root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid)",
+
+          "config": {
+            ".write": "auth != null && (root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'owner' || root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'operator')",
+            ".validate": "newData.hasChildren(['v', 'siteId', 'tzOffsetMin']) && newData.child('siteId').val() === root.child('hubs/' + $hub + '/meta/siteId').val()"
+          },
+
+          "cmd": {
+            "$cmd": {
+              // Buat: owner/operator. Hapus: hub (setelah diproses) atau owner/operator.
+              ".write": "auth != null && ((!data.exists() && (root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'owner' || root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'operator')) || (!newData.exists() && (root.child('hubs/' + $hub + '/meta/authUid').val() === auth.uid || root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'owner' || root.child('hubs/' + $hub + '/acl/' + auth.uid).val() === 'operator')))",
+              ".validate": "newData.hasChildren(['type', 'by', 'ts', 'expSec']) && newData.child('by').val() === auth.uid && newData.child('ts').val() === now && newData.child('expSec').isNumber() && newData.child('expSec').val() <= 300 && newData.child('type').val().matches(/^(relay|relay_auto|test_relay|calibrate|identify|restart|ota)$/)"
+            }
+          }
+        }
+      }
+    }
+  }
+}
